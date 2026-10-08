@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Quality Complaint Management Portal</title>
+  <title>Regulatory Complaint Intake Portal</title>
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -203,7 +203,7 @@
 </div>
 
 <script>
-  // Replace with your current Apps Script Web App exec URL
+  // Paste your Apps Script Web App exec URL here
   const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzQn_X3g_4U_e7wYFqM8_JvH7qK4fG4NlB_YOUR_EXEC_ID/exec';
 
   function showBanner(msg, type) {
@@ -212,7 +212,7 @@
     b.innerHTML = msg;
   }
 
-  // Load HubSpot ticket queue on page load
+  // Auto-load HubSpot queue when page opens
   window.addEventListener('DOMContentLoaded', loadTicketQueue);
 
   async function loadTicketQueue() {
@@ -221,15 +221,15 @@
 
     try {
       const res = await fetch(`${APPS_SCRIPT_URL}?action=listTickets`);
-      const json = await res.parse ? await res.json() : JSON.parse(await res.text());
+      const json = await res.json();
 
       if (!json.success || !json.data || json.data.length === 0) {
         select.innerHTML = '<option value="">No open tickets found</option>';
-        showBanner('Ready. No pending tickets found or select manual entry.', 'info');
+        showBanner(json.error ? `HubSpot Notice: ${json.error}` : 'No tickets currently available in queue.', 'error');
         return;
       }
 
-      select.innerHTML = '<option value="">-- Choose a Ticket from Queue (' + json.data.length + ' available) --</option>';
+      select.innerHTML = '<option value="">-- Choose a Ticket (' + json.data.length + ' available) --</option>';
       json.data.forEach(t => {
         const opt = document.createElement('option');
         opt.value = t.id;
@@ -238,10 +238,11 @@
       });
 
       showBanner('HubSpot queue loaded successfully.', 'success');
-      setTimeout(() => { document.getElementById('statusBanner').style.display = 'none'; }, 2500);
+      setTimeout(() => { document.getElementById('statusBanner').style.display = 'none'; }, 2000);
     } catch (err) {
+      console.error(err);
       select.innerHTML = '<option value="">Failed to load ticket queue</option>';
-      showBanner('Could not load ticket list. You can still paste Ticket ID manually.', 'error');
+      showBanner(`Could not load ticket queue: ${err.message}. You can still paste Ticket ID manually.`, 'error');
     }
   }
 
