@@ -203,8 +203,7 @@
 </div>
 
 <script>
-  // Active Web App Execution Endpoint
-  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbuTBU_yFc6Lnw_I5grItuZdVUVxsUBU9HI-xT0iN5g2vLw83Xm76w9TzM9j6m5lC8k0/exec';
+  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxi7yy7dxpdvk2M7O8ul1YDjSR-IYBPxExX7YLBC8dyv2OoIiX3zAelTmmGzvAHU6K1/exec';
 
   function showBanner(msg, type) {
     const b = document.getElementById('statusBanner');
@@ -226,14 +225,14 @@
       try {
         json = JSON.parse(rawText);
       } catch (parseErr) {
-        showBanner('Apps Script returned a permission/HTML page instead of JSON. Ensure "Who has access" is set to "Anyone" and redeployed as a new version.', 'error');
-        select.innerHTML = '<option value="">Access restricted - check deployment permissions</option>';
+        showBanner('Error parsing JSON response. Verify the deployment settings in Apps Script.', 'error');
+        select.innerHTML = '<option value="">Access error</option>';
         return;
       }
 
       if (!json.success || !json.data || json.data.length === 0) {
         select.innerHTML = '<option value="">No open tickets found</option>';
-        showBanner(json.error ? `HubSpot Notice: ${json.error}` : 'No tickets available.', 'error');
+        showBanner(json.error ? `HubSpot Notice: ${json.error}` : 'No tickets available in queue.', 'error');
         return;
       }
 
