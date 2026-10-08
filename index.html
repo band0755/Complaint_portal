@@ -203,8 +203,8 @@
 </div>
 
 <script>
-  // Paste your Apps Script Web App exec URL here
-  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzQn_X3g_4U_e7wYFqM8_JvH7qK4fG4NlB_YOUR_EXEC_ID/exec';
+  // Paste your full Apps Script deployment URL here:
+  const APPS_SCRIPT_URL = 'YOUR_ACTUAL_EXEC_URL_HERE';
 
   function showBanner(msg, type) {
     const b = document.getElementById('statusBanner');
@@ -212,7 +212,6 @@
     b.innerHTML = msg;
   }
 
-  // Auto-load HubSpot queue when page opens
   window.addEventListener('DOMContentLoaded', loadTicketQueue);
 
   async function loadTicketQueue() {
@@ -225,7 +224,7 @@
 
       if (!json.success || !json.data || json.data.length === 0) {
         select.innerHTML = '<option value="">No open tickets found</option>';
-        showBanner(json.error ? `HubSpot Notice: ${json.error}` : 'No tickets currently available in queue.', 'error');
+        showBanner(json.error ? `HubSpot Notice: ${json.error}` : 'No tickets found.', 'error');
         return;
       }
 
