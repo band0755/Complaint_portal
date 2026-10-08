@@ -3,377 +3,579 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Regulatory Complaint Intake Portal</title>
+  <title>Band Connect | Regulatory Complaint Intake Portal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600;1,400&display=swap" rel="stylesheet">
   <style>
+    :root {
+      --bg-dark: #16162a;
+      --card-bg: #1e1e36;
+      --card-inner: #252542;
+      --border-color: #323259;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --accent-purple: #7066a9;
+      --accent-purple-hover: #5d5494;
+      --accent-cyan: #25c2d3;
+      --accent-green: #10b981;
+      --accent-red: #ef4444;
+    }
+
+    * { box-sizing: border-box; }
+
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
       margin: 0;
-      padding: 24px;
-      background-color: #f4f6f8;
-      color: #1a202c;
+      padding: 0;
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
     }
-    .container {
-      max-width: 900px;
-      margin: 0 auto;
-      background: #ffffff;
-      border-radius: 8px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-      padding: 32px;
+
+    /* HEADER */
+    header {
+      background: rgba(22, 22, 42, 0.95);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--border-color);
+      padding: 16px 36px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 50;
     }
-    h1 {
+
+    .brand-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      color: #fff;
+    }
+
+    .brand-logo svg {
+      width: 28px;
+      height: 28px;
+      fill: none;
+      stroke: var(--accent-cyan);
+      stroke-width: 2.5;
+    }
+
+    .brand-logo span {
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+    }
+
+    .brand-logo span b {
+      color: var(--accent-cyan);
+      font-weight: 400;
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      display: block;
+      margin-top: -3px;
+    }
+
+    .header-badge {
+      font-size: 12px;
+      background: var(--card-inner);
+      color: var(--accent-cyan);
+      border: 1px solid var(--border-color);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+
+    /* AUTH GATE OVERLAY */
+    #authOverlay {
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(circle at top right, #25254b 0%, #16162a 75%);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      padding: 20px;
+    }
+
+    .auth-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 40px;
+      max-width: 420px;
+      width: 100%;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.45);
+      text-align: center;
+    }
+
+    .auth-card h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 26px;
       margin-top: 0;
-      font-size: 24px;
-      border-bottom: 2px solid #e2e8f0;
-      padding-bottom: 12px;
+      margin-bottom: 8px;
     }
+
+    .auth-card p {
+      color: var(--text-muted);
+      font-size: 14px;
+      margin-bottom: 24px;
+    }
+
+    /* MAIN CONTAINER */
+    .container {
+      max-width: 940px;
+      margin: 36px auto;
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      box-shadow: 0 24px 48px rgba(0,0,0,0.35);
+      padding: 36px;
+      width: 90%;
+    }
+
+    .page-title {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 32px;
+      font-weight: 500;
+      margin: 0 0 6px 0;
+      letter-spacing: -0.5px;
+    }
+
+    .page-subtitle {
+      color: var(--text-muted);
+      font-size: 14px;
+      margin-bottom: 28px;
+    }
+
+    /* BANNER NOTIFICATIONS */
     .banner {
       display: none;
       padding: 14px 18px;
-      border-radius: 6px;
-      margin-bottom: 20px;
-      font-weight: 500;
+      border-radius: 8px;
+      margin-bottom: 24px;
       font-size: 14px;
+      font-weight: 500;
     }
-    .banner.success { display: block; background: #def7ec; color: #03543f; border: 1px solid #84e1bc; }
-    .banner.error { display: block; background: #fde8e8; color: #9b1c1c; border: 1px solid #f8b4b4; }
-    .banner.loading { display: block; background: #e1effe; color: #1e429f; border: 1px solid #a4cafe; }
+    .banner.loading { display: block; background: rgba(37, 194, 211, 0.15); border: 1px solid var(--accent-cyan); color: var(--accent-cyan); }
+    .banner.success { display: block; background: rgba(16, 185, 129, 0.15); border: 1px solid var(--accent-green); color: #34d399; }
+    .banner.error { display: block; background: rgba(239, 68, 68, 0.15); border: 1px solid var(--accent-red); color: #f87171; }
 
+    /* FORM ELEMENTS */
     fieldset {
-      border: 1px solid #e2e8f0;
-      border-radius: 6px;
-      padding: 20px;
+      border: 1px solid var(--border-color);
+      background: var(--card-inner);
+      border-radius: 10px;
+      padding: 24px;
       margin-bottom: 24px;
     }
+
     legend {
       font-weight: 600;
-      padding: 0 8px;
-      color: #2d3748;
+      padding: 0 10px;
+      color: var(--accent-cyan);
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
     }
+
     .form-group {
-      margin-bottom: 16px;
+      margin-bottom: 18px;
     }
+
     label {
       display: block;
-      font-size: 13px;
+      font-size: 12.5px;
       font-weight: 600;
-      margin-bottom: 6px;
-      color: #4a5568;
+      margin-bottom: 7px;
+      color: #cbd5e1;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
     }
-    input[type="text"], input[type="email"], select, textarea {
+
+    input[type="text"], input[type="password"], input[type="email"], select, textarea {
       width: 100%;
-      box-sizing: border-box;
-      padding: 9px 12px;
-      border: 1px solid #cbd5e0;
-      border-radius: 5px;
+      background: #18182d;
+      color: var(--text-main);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 11px 14px;
       font-size: 14px;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.2s;
     }
-    textarea { resize: vertical; min-height: 80px; }
-    .row { display: flex; gap: 16px; }
+
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--accent-cyan);
+      box-shadow: 0 0 0 2px rgba(37, 194, 211, 0.2);
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 90px;
+      line-height: 1.5;
+    }
+
+    .row {
+      display: flex;
+      gap: 16px;
+    }
     .row .form-group { flex: 1; }
 
+    /* BUTTONS */
     .btn {
-      background-color: #2563eb;
-      color: white;
+      background: var(--accent-purple);
+      color: #fff;
       border: none;
-      padding: 10px 18px;
+      border-radius: 8px;
+      padding: 12px 22px;
       font-size: 14px;
       font-weight: 600;
-      border-radius: 5px;
       cursor: pointer;
+      transition: all 0.2s ease;
+      font-family: inherit;
     }
-    .btn:hover { background-color: #1d4ed8; }
-    .btn:disabled { background-color: #94a3b8; cursor: not-allowed; }
+    .btn:hover { background: var(--accent-purple-hover); }
+    .btn:disabled { background: #475569; cursor: not-allowed; }
+
     .btn-submit {
-      background-color: #059669;
+      background: linear-gradient(135deg, #7066a9 0%, #524796 100%);
       width: 100%;
-      padding: 14px;
+      padding: 16px;
       font-size: 16px;
-      transition: background-color 0.2s ease;
+      letter-spacing: 0.3px;
+      box-shadow: 0 8px 24px rgba(112, 102, 169, 0.35);
+      border: 1px solid #8278be;
     }
-    .btn-submit:hover { background-color: #047857; }
-    .btn-submit:disabled { background-color: #6ee7b7; cursor: wait; }
+    .btn-submit:hover {
+      background: linear-gradient(135deg, #7c71ba 0%, #5c50a6 100%);
+      box-shadow: 0 10px 28px rgba(112, 102, 169, 0.5);
+    }
   </style>
 </head>
 <body>
 
-<div class="container">
-  <h1>Regulatory Complaint Intake Portal</h1>
-  
-  <!-- TOP BANNER -->
-  <div id="statusBannerTop" class="banner"></div>
+  <!-- AUTHENTICATION OVERLAY -->
+  <div id="authOverlay">
+    <div class="auth-card">
+      <div style="margin-bottom: 16px;">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#25c2d3" stroke-width="2">
+          <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+        </svg>
+      </div>
+      <h2>Internal Quality Portal</h2>
+      <p>Please enter authorized credentials to access 21 CFR 820 complaint intake.</p>
+      <div class="form-group" style="text-align: left;">
+        <input type="password" id="authPassword" placeholder="Enter password" onkeydown="if(event.key==='Enter') verifyPassword()">
+      </div>
+      <button class="btn" style="width: 100%;" onclick="verifyPassword()">Authenticate</button>
+      <div id="authError" style="color: var(--accent-red); font-size: 13px; margin-top: 14px; display: none;">
+        Invalid password. Access restricted.
+      </div>
+    </div>
+  </div>
 
-  <!-- SECTION 1: TICKET SELECTION -->
-  <fieldset>
-    <legend>1. HubSpot Ingestion Queue</legend>
-    <div class="form-group">
-      <label for="ticketSelect">Select Open Complaint Ticket from HubSpot:</label>
-      <select id="ticketSelect" onchange="onTicketSelected()">
-        <option value="">Loading tickets from HubSpot...</option>
-      </select>
-    </div>
-    <div class="row">
-      <div class="form-group">
-        <label for="ticketId">Ticket ID:</label>
-        <input type="text" id="ticketId" placeholder="Or enter Ticket ID manually">
-      </div>
-      <div class="form-group" style="align-self: flex-end;">
-        <button class="btn" type="button" onclick="fetchTicketById()">Fetch Ticket Details</button>
-      </div>
-    </div>
-  </fieldset>
+  <!-- NAVIGATION HEADER -->
+  <header>
+    <a href="#" class="brand-logo">
+      <svg viewBox="0 0 24 24">
+        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+      </svg>
+      <span>band<b>CONNECT</b></span>
+    </a>
+    <span class="header-badge">FDA 21 CFR 820.198 System</span>
+  </header>
 
-  <!-- SECTION 2: COMPLAINANT & DETAILS -->
-  <fieldset>
-    <legend>2. Complainant &amp; Incident Information</legend>
-    <div class="row">
-      <div class="form-group">
-        <label for="complainantName">Name of Complainant:</label>
-        <input type="text" id="complainantName">
-      </div>
-      <div class="form-group">
-        <label for="dateReceived">Date Received:</label>
-        <input type="text" id="dateReceived">
-      </div>
-    </div>
-    <div class="row">
-      <div class="form-group">
-        <label for="facility">Facility / Company:</label>
-        <input type="text" id="facility">
-      </div>
-      <div class="form-group">
-        <label for="phone">Phone #:</label>
-        <input type="text" id="phone">
-      </div>
-      <div class="form-group">
-        <label for="email">Email Address:</label>
-        <input type="email" id="email">
-      </div>
-    </div>
-    <div class="form-group">
-      <label for="subject">Ticket Subject:</label>
-      <input type="text" id="subject">
-    </div>
-    <div class="form-group">
-      <label for="description">Complaint Narrative / Description:</label>
-      <textarea id="description"></textarea>
-    </div>
-  </fieldset>
+  <!-- PORTAL APPLICATION -->
+  <div class="container" id="mainPortal" style="display: none;">
+    <h1 class="page-title">Regulatory Complaint Intake</h1>
+    <div class="page-subtitle">Direct CRM Ingestion &amp; Quality Record Generation Engine</div>
 
-  <!-- SECTION 3: PRODUCT & REGULATORY TRIAGE -->
-  <fieldset>
-    <legend>3. Product &amp; Regulatory Triage (QA)</legend>
-    <div class="row">
+    <div id="statusBannerTop" class="banner"></div>
+
+    <!-- SECTION 1: TICKET QUEUE -->
+    <fieldset>
+      <legend>1. Ingestion Queue</legend>
       <div class="form-group">
-        <label for="productName">Product Name:</label>
-        <input type="text" id="productName" value="Band Connect Clinic Kit">
-      </div>
-      <div class="form-group">
-        <label for="serialLot">Serial / Lot #:</label>
-        <input type="text" id="serialLot" placeholder="e.g. SN-88234">
-      </div>
-    </div>
-    <div class="row">
-      <div class="form-group">
-        <label for="malfunction">Device Malfunction?</label>
-        <select id="malfunction">
-          <option value="No">No</option>
-          <option value="Yes">Yes</option>
+        <label for="ticketSelect">Pending HubSpot Ticket Queue:</label>
+        <select id="ticketSelect" onchange="onTicketSelected()">
+          <option value="">Connecting to HubSpot...</option>
         </select>
       </div>
-      <div class="form-group">
-        <label for="patientInjury">Patient Injury Involved?</label>
-        <select id="patientInjury">
-          <option value="No">No</option>
-          <option value="Yes">Yes</option>
-        </select>
+      <div class="row">
+        <div class="form-group">
+          <label for="ticketId">Ticket ID:</label>
+          <input type="text" id="ticketId" placeholder="Or enter Ticket ID manually">
+        </div>
+        <div class="form-group" style="align-self: flex-end;">
+          <button class="btn" type="button" onclick="fetchTicketById()">Fetch Ticket Details</button>
+        </div>
+      </div>
+    </fieldset>
+
+    <!-- SECTION 2: COMPLAINANT INFORMATION -->
+    <fieldset>
+      <legend>2. Complainant &amp; Incident Information</legend>
+      <div class="row">
+        <div class="form-group">
+          <label for="complainantName">Name of Complainant:</label>
+          <input type="text" id="complainantName">
+        </div>
+        <div class="form-group">
+          <label for="dateReceived">Date Received:</label>
+          <input type="text" id="dateReceived">
+        </div>
+      </div>
+      <div class="row">
+        <div class="form-group">
+          <label for="facility">Facility / Company:</label>
+          <input type="text" id="facility">
+        </div>
+        <div class="form-group">
+          <label for="phone">Phone #:</label>
+          <input type="text" id="phone">
+        </div>
+        <div class="form-group">
+          <label for="email">Email Address:</label>
+          <input type="email" id="email">
+        </div>
       </div>
       <div class="form-group">
-        <label for="mdrReportable">MDR Reportable (21 CFR 803)?</label>
-        <select id="mdrReportable">
-          <option value="No">No</option>
-          <option value="Yes">Yes</option>
-        </select>
+        <label for="subject">Ticket Subject:</label>
+        <input type="text" id="subject">
       </div>
-    </div>
-    <div class="form-group">
-      <label for="qaNotes">QA / Triage Notes:</label>
-      <textarea id="qaNotes" placeholder="Enter root cause notes, clinical review comments, or justification..."></textarea>
-    </div>
-  </fieldset>
+      <div class="form-group">
+        <label for="description">Complaint Narrative / Description:</label>
+        <textarea id="description"></textarea>
+      </div>
+    </fieldset>
 
-  <!-- BOTTOM BANNER (Directly above button) -->
-  <div id="statusBannerBottom" class="banner"></div>
+    <!-- SECTION 3: PRODUCT & REGULATORY TRIAGE -->
+    <fieldset>
+      <legend>3. Product &amp; Regulatory Triage (QA)</legend>
+      <div class="row">
+        <div class="form-group">
+          <label for="productName">Product Name:</label>
+          <input type="text" id="productName" value="Band Connect Clinic Kit">
+        </div>
+        <div class="form-group">
+          <label for="serialLot">Serial / Lot #:</label>
+          <input type="text" id="serialLot" placeholder="e.g. SN-88234">
+        </div>
+      </div>
+      <div class="row">
+        <div class="form-group">
+          <label for="malfunction">Device Malfunction?</label>
+          <select id="malfunction">
+            <option value="No">No</option>
+            <option value="Yes">Yes</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="patientInjury">Patient Injury Involved?</label>
+          <select id="patientInjury">
+            <option value="No">No</option>
+            <option value="Yes">Yes</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="mdrReportable">MDR Reportable (21 CFR 803)?</label>
+          <select id="mdrReportable">
+            <option value="No">No</option>
+            <option value="Yes">Yes</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="qaNotes">QA / Triage Notes:</label>
+        <textarea id="qaNotes" placeholder="Enter root cause analysis notes, verification details, or reporting justification..."></textarea>
+      </div>
+    </fieldset>
 
-  <button class="btn btn-submit" id="submitBtn" type="button" onclick="submitComplaintRecord()">
-    Generate Complaint Record &amp; Log Entry
-  </button>
-</div>
+    <div id="statusBannerBottom" class="banner"></div>
 
-<script>
-  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxi7yy7dxpdvk2M7O8ul1YDjSR-IYBPxExX7YLBC8dyv2OoIiX3zAelTmmGzvAHU6K1/exec';
+    <button class="btn btn-submit" id="submitBtn" type="button" onclick="submitComplaintRecord()">
+      Generate Complaint Record &amp; Log Entry
+    </button>
+  </div>
 
-  function showBanner(msg, type) {
-    const top = document.getElementById('statusBannerTop');
-    const bottom = document.getElementById('statusBannerBottom');
+  <script>
+    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxi7yy7dxpdvk2M7O8ul1YDjSR-IYBPxExX7YLBC8dyv2OoIiX3zAelTmmGzvAHU6K1/exec';
 
-    [top, bottom].forEach(b => {
-      if (b) {
-        b.className = `banner ${type}`;
-        b.innerHTML = msg;
-        b.style.display = 'block';
+    // PASSWORD GATE VERIFICATION
+    function verifyPassword() {
+      const input = document.getElementById('authPassword').value;
+      const errorMsg = document.getElementById('authError');
+      
+      if (input === 'Complaint2026!') {
+        sessionStorage.setItem('bc_qa_auth', 'authenticated');
+        document.getElementById('authOverlay').style.display = 'none';
+        document.getElementById('mainPortal').style.display = 'block';
+        loadTicketQueue();
+      } else {
+        errorMsg.style.display = 'block';
+      }
+    }
+
+    // Auto-login if previously verified in the active session
+    window.addEventListener('DOMContentLoaded', () => {
+      if (sessionStorage.getItem('bc_qa_auth') === 'authenticated') {
+        document.getElementById('authOverlay').style.display = 'none';
+        document.getElementById('mainPortal').style.display = 'block';
+        loadTicketQueue();
       }
     });
-  }
 
-  function hideBanners() {
-    const top = document.getElementById('statusBannerTop');
-    const bottom = document.getElementById('statusBannerBottom');
-    if (top) top.style.display = 'none';
-    if (bottom) bottom.style.display = 'none';
-  }
+    function showBanner(msg, type) {
+      const top = document.getElementById('statusBannerTop');
+      const bottom = document.getElementById('statusBannerBottom');
+      [top, bottom].forEach(b => {
+        if (b) {
+          b.className = `banner ${type}`;
+          b.innerHTML = msg;
+          b.style.display = 'block';
+        }
+      });
+    }
 
-  window.addEventListener('DOMContentLoaded', loadTicketQueue);
+    function hideBanners() {
+      const top = document.getElementById('statusBannerTop');
+      const bottom = document.getElementById('statusBannerBottom');
+      if (top) top.style.display = 'none';
+      if (bottom) bottom.style.display = 'none';
+    }
 
-  async function loadTicketQueue() {
-    showBanner('Loading open tickets from HubSpot...', 'loading');
-    const select = document.getElementById('ticketSelect');
+    async function loadTicketQueue() {
+      showBanner('Syncing open tickets from HubSpot...', 'loading');
+      const select = document.getElementById('ticketSelect');
 
-    try {
-      const res = await fetch(`${APPS_SCRIPT_URL}?action=listTickets`);
-      const rawText = await res.text();
-      
-      let json;
       try {
-        json = JSON.parse(rawText);
-      } catch (parseErr) {
-        showBanner('Error: Apps Script returned unexpected HTML. Check authorization.', 'error');
-        select.innerHTML = '<option value="">Access error</option>';
+        const res = await fetch(`${APPS_SCRIPT_URL}?action=listTickets`);
+        const json = await res.json();
+
+        if (!json.success || !json.data || json.data.length === 0) {
+          select.innerHTML = '<option value="">No open tickets available in queue</option>';
+          hideBanners();
+          return;
+        }
+
+        select.innerHTML = '<option value="">-- Choose a Ticket (' + json.data.length + ' Available) --</option>';
+        json.data.forEach(t => {
+          const opt = document.createElement('option');
+          opt.value = t.id;
+          opt.textContent = `#${t.id} - ${t.subject} [${t.status}] (${t.createDate || 'N/A'})`;
+          select.appendChild(opt);
+        });
+
+        showBanner('HubSpot queue loaded successfully.', 'success');
+        setTimeout(hideBanners, 2000);
+      } catch (err) {
+        select.innerHTML = '<option value="">Failed to connect to HubSpot</option>';
+        showBanner(`Could not fetch ticket queue: ${err.message}`, 'error');
+      }
+    }
+
+    function onTicketSelected() {
+      const selectedId = document.getElementById('ticketSelect').value;
+      if (selectedId) {
+        document.getElementById('ticketId').value = selectedId;
+        fetchTicketById();
+      }
+    }
+
+    async function fetchTicketById() {
+      const ticketId = document.getElementById('ticketId').value.trim();
+      if (!ticketId) {
+        alert('Please select or input a Ticket ID.');
         return;
       }
 
-      if (!json.success || !json.data || json.data.length === 0) {
-        select.innerHTML = '<option value="">No open tickets found</option>';
-        showBanner(json.error ? `HubSpot Notice: ${json.error}` : 'No tickets in queue.', 'error');
-        return;
+      showBanner(`Retrieving ticket #${ticketId} payload...`, 'loading');
+
+      try {
+        const res = await fetch(`${APPS_SCRIPT_URL}?action=getTicket&ticketId=${ticketId}`);
+        const json = await res.json();
+
+        if (!json.success) {
+          showBanner(`HubSpot Error: ${json.error}`, 'error');
+          return;
+        }
+
+        const d = json.data;
+        document.getElementById('complainantName').value = d.complainantName || '';
+        document.getElementById('dateReceived').value = d.createDate || '';
+        document.getElementById('facility').value = d.company || '';
+        document.getElementById('phone').value = d.phone || '';
+        document.getElementById('email').value = d.email || '';
+        document.getElementById('subject').value = d.subject || '';
+        document.getElementById('description').value = d.content || '';
+
+        showBanner(`Ticket #${ticketId} populated. Ready for QA triage.`, 'success');
+      } catch (err) {
+        showBanner(`Error fetching ticket: ${err.message}`, 'error');
       }
-
-      select.innerHTML = '<option value="">-- Choose a Ticket (' + json.data.length + ' available) --</option>';
-      json.data.forEach(t => {
-        const opt = document.createElement('option');
-        opt.value = t.id;
-        opt.textContent = `#${t.id} - ${t.subject} [${t.status}] (${t.createDate || 'N/A'})`;
-        select.appendChild(opt);
-      });
-
-      showBanner('HubSpot queue loaded successfully.', 'success');
-      setTimeout(hideBanners, 2000);
-    } catch (err) {
-      console.error(err);
-      select.innerHTML = '<option value="">Failed to load ticket queue</option>';
-      showBanner(`Network error: ${err.message}. You can enter Ticket ID manually.`, 'error');
-    }
-  }
-
-  function onTicketSelected() {
-    const selectedId = document.getElementById('ticketSelect').value;
-    if (selectedId) {
-      document.getElementById('ticketId').value = selectedId;
-      fetchTicketById();
-    }
-  }
-
-  async function fetchTicketById() {
-    const ticketId = document.getElementById('ticketId').value.trim();
-    if (!ticketId) {
-      alert('Please enter or select a Ticket ID.');
-      return;
     }
 
-    showBanner(`Fetching ticket #${ticketId} from HubSpot...`, 'loading');
+    async function submitComplaintRecord() {
+      const submitBtn = document.getElementById('submitBtn');
+      submitBtn.disabled = true;
+      submitBtn.innerText = 'Cloning Doc & Appending Master Log...';
+      showBanner('Generating Quality Complaint Record (FDA 21 CFR 820)...', 'loading');
 
-    try {
-      const res = await fetch(`${APPS_SCRIPT_URL}?action=getTicket&ticketId=${ticketId}`);
-      const json = await res.json();
+      const getValue = (id, fallback = '') => {
+        const el = document.getElementById(id);
+        return el ? el.value : fallback;
+      };
 
-      if (!json.success) {
-        showBanner(`HubSpot Error: ${json.error}`, 'error');
-        return;
-      }
+      const payload = {
+        ticketId: getValue('ticketId'),
+        complainantName: getValue('complainantName'),
+        dateReceived: getValue('dateReceived'),
+        facility: getValue('facility'),
+        phone: getValue('phone'),
+        email: getValue('email'),
+        subject: getValue('subject'),
+        description: getValue('description'),
+        productName: getValue('productName', 'Band Connect Clinic Kit'),
+        serialLot: getValue('serialLot'),
+        malfunction: getValue('malfunction', 'No'),
+        patientInjury: getValue('patientInjury', 'No'),
+        mdrReportable: getValue('mdrReportable', 'No'),
+        qaNotes: getValue('qaNotes')
+      };
 
-      const d = json.data;
-      document.getElementById('complainantName').value = d.complainantName || '';
-      document.getElementById('dateReceived').value = d.createDate || '';
-      document.getElementById('facility').value = d.company || '';
-      document.getElementById('phone').value = d.phone || '';
-      document.getElementById('email').value = d.email || '';
-      document.getElementById('subject').value = d.subject || '';
-      document.getElementById('description').value = d.content || '';
+      try {
+        const res = await fetch(APPS_SCRIPT_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify(payload)
+        });
 
-      showBanner(`Ticket #${ticketId} loaded successfully. Review fields and submit.`, 'success');
-    } catch (err) {
-      showBanner(`Network Error fetching ticket: ${err.message}`, 'error');
-    }
-  }
+        const json = await res.json();
 
-  async function submitComplaintRecord() {
-    const submitBtn = document.getElementById('submitBtn');
-    submitBtn.disabled = true;
-    submitBtn.innerText = 'Processing... Generating Doc & Logging to Sheet';
+        if (!json.success) {
+          showBanner(`Submission Failed: ${json.error}`, 'error');
+          submitBtn.disabled = false;
+          submitBtn.innerText = 'Generate Complaint Record & Log Entry';
+          return;
+        }
 
-    showBanner('Generating Quality Complaint Doc & logging entry to Sheet...', 'loading');
-
-    const getValue = (id, fallback = '') => {
-      const el = document.getElementById(id);
-      return el ? el.value : fallback;
-    };
-
-    const payload = {
-      ticketId: getValue('ticketId'),
-      complainantName: getValue('complainantName'),
-      dateReceived: getValue('dateReceived'),
-      facility: getValue('facility'),
-      phone: getValue('phone'),
-      email: getValue('email'),
-      subject: getValue('subject'),
-      description: getValue('description'),
-      productName: getValue('productName', 'Band Connect Clinic Kit'),
-      serialLot: getValue('serialLot'),
-      malfunction: getValue('malfunction', 'No'),
-      patientInjury: getValue('patientInjury', 'No'),
-      mdrReportable: getValue('mdrReportable', 'No'),
-      qaNotes: getValue('qaNotes')
-    };
-
-    console.log('Dispatching payload:', payload);
-
-    try {
-      const res = await fetch(APPS_SCRIPT_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify(payload)
-      });
-
-      const json = await res.json();
-      console.log('Server response:', json);
-
-      if (!json.success) {
-        showBanner(`Submission Failed: ${json.error}`, 'error');
+        showBanner(`Record Created: <strong>${json.complaintNumber}</strong>. <a href="${json.docUrl}" target="_blank" style="color: #25c2d3; text-decoration: underline; font-weight: 700; margin-left: 8px;">Open Generated Document</a>`, 'success');
         submitBtn.disabled = false;
         submitBtn.innerText = 'Generate Complaint Record & Log Entry';
-        return;
+      } catch (err) {
+        showBanner(`Error processing submission: ${err.message}`, 'error');
+        submitBtn.disabled = false;
+        submitBtn.innerText = 'Generate Complaint Record & Log Entry';
       }
-
-      showBanner(`Success! Created Record <strong>${json.complaintNumber}</strong>. <a href="${json.docUrl}" target="_blank" style="color: #03543f; text-decoration: underline; font-weight: bold;">Open Generated Document</a>`, 'success');
-      submitBtn.disabled = false;
-      submitBtn.innerText = 'Generate Complaint Record & Log Entry';
-    } catch (err) {
-      console.error('Submission Catch:', err);
-      showBanner(`Error submitting complaint: ${err.message}`, 'error');
-      submitBtn.disabled = false;
-      submitBtn.innerText = 'Generate Complaint Record & Log Entry';
     }
-  }
-</script>
-
+  </script>
 </body>
 </html>
