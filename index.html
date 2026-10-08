@@ -120,7 +120,7 @@
 
   <!-- SECTION 2: COMPLAINANT & DETAILS -->
   <fieldset>
-    <legend>2. Complainant & Incident Information</legend>
+    <legend>2. Complainant &amp; Incident Information</legend>
     <div class="row">
       <div class="form-group">
         <label for="complainantName">Name of Complainant:</label>
@@ -157,7 +157,7 @@
 
   <!-- SECTION 3: PRODUCT & REGULATORY TRIAGE -->
   <fieldset>
-    <legend>3. Product & Regulatory Triage (QA)</legend>
+    <legend>3. Product &amp; Regulatory Triage (QA)</legend>
     <div class="row">
       <div class="form-group">
         <label for="productName">Product Name:</label>
@@ -203,8 +203,8 @@
 </div>
 
 <script>
-  // Paste your full Apps Script deployment URL here:
-  const APPS_SCRIPT_URL = 'YOUR_ACTUAL_EXEC_URL_HERE';
+  // Active Web App Execution Endpoint
+  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbuTBU_yFc6Lnw_I5grItuZdVUVxsUBU9HI-xT0iN5g2vLw83Xm76w9TzM9j6m5lC8k0/exec';
 
   function showBanner(msg, type) {
     const b = document.getElementById('statusBanner');
@@ -220,11 +220,20 @@
 
     try {
       const res = await fetch(`${APPS_SCRIPT_URL}?action=listTickets`);
-      const json = await res.json();
+      const rawText = await res.text();
+      
+      let json;
+      try {
+        json = JSON.parse(rawText);
+      } catch (parseErr) {
+        showBanner('Apps Script returned a permission/HTML page instead of JSON. Ensure "Who has access" is set to "Anyone" and redeployed as a new version.', 'error');
+        select.innerHTML = '<option value="">Access restricted - check deployment permissions</option>';
+        return;
+      }
 
       if (!json.success || !json.data || json.data.length === 0) {
         select.innerHTML = '<option value="">No open tickets found</option>';
-        showBanner(json.error ? `HubSpot Notice: ${json.error}` : 'No tickets found.', 'error');
+        showBanner(json.error ? `HubSpot Notice: ${json.error}` : 'No tickets available.', 'error');
         return;
       }
 
@@ -241,7 +250,7 @@
     } catch (err) {
       console.error(err);
       select.innerHTML = '<option value="">Failed to load ticket queue</option>';
-      showBanner(`Could not load ticket queue: ${err.message}. You can still paste Ticket ID manually.`, 'error');
+      showBanner(`Network error: ${err.message}. You can still paste Ticket ID manually.`, 'error');
     }
   }
 
