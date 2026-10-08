@@ -30,8 +30,9 @@
       display: none;
       padding: 14px 18px;
       border-radius: 6px;
-      margin-bottom: 24px;
+      margin-bottom: 20px;
       font-weight: 500;
+      font-size: 14px;
     }
     .banner.success { display: block; background: #def7ec; color: #03543f; border: 1px solid #84e1bc; }
     .banner.error { display: block; background: #fde8e8; color: #9b1c1c; border: 1px solid #f8b4b4; }
@@ -87,8 +88,10 @@
       width: 100%;
       padding: 14px;
       font-size: 16px;
+      transition: background-color 0.2s ease;
     }
     .btn-submit:hover { background-color: #047857; }
+    .btn-submit:disabled { background-color: #6ee7b7; cursor: wait; }
   </style>
 </head>
 <body>
@@ -96,7 +99,8 @@
 <div class="container">
   <h1>Regulatory Complaint Intake Portal</h1>
   
-  <div id="statusBanner" class="banner"></div>
+  <!-- TOP BANNER -->
+  <div id="statusBannerTop" class="banner"></div>
 
   <!-- SECTION 1: TICKET SELECTION -->
   <fieldset>
@@ -197,6 +201,9 @@
     </div>
   </fieldset>
 
+  <!-- BOTTOM BANNER (Directly above button) -->
+  <div id="statusBannerBottom" class="banner"></div>
+
   <button class="btn btn-submit" id="submitBtn" type="button" onclick="submitComplaintRecord()">
     Generate Complaint Record &amp; Log Entry
   </button>
@@ -206,9 +213,23 @@
   const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxi7yy7dxpdvk2M7O8ul1YDjSR-IYBPxExX7YLBC8dyv2OoIiX3zAelTmmGzvAHU6K1/exec';
 
   function showBanner(msg, type) {
-    const b = document.getElementById('statusBanner');
-    b.className = `banner ${type}`;
-    b.innerHTML = msg;
+    const top = document.getElementById('statusBannerTop');
+    const bottom = document.getElementById('statusBannerBottom');
+
+    [top, bottom].forEach(b => {
+      if (b) {
+        b.className = `banner ${type}`;
+        b.innerHTML = msg;
+        b.style.display = 'block';
+      }
+    });
+  }
+
+  function hideBanners() {
+    const top = document.getElementById('statusBannerTop');
+    const bottom = document.getElementById('statusBannerBottom');
+    if (top) top.style.display = 'none';
+    if (bottom) bottom.style.display = 'none';
   }
 
   window.addEventListener('DOMContentLoaded', loadTicketQueue);
@@ -225,14 +246,14 @@
       try {
         json = JSON.parse(rawText);
       } catch (parseErr) {
-        showBanner('Error parsing JSON response. Verify the deployment settings in Apps Script.', 'error');
+        showBanner('Error: Apps Script returned unexpected HTML. Check authorization.', 'error');
         select.innerHTML = '<option value="">Access error</option>';
         return;
       }
 
       if (!json.success || !json.data || json.data.length === 0) {
         select.innerHTML = '<option value="">No open tickets found</option>';
-        showBanner(json.error ? `HubSpot Notice: ${json.error}` : 'No tickets available in queue.', 'error');
+        showBanner(json.error ? `HubSpot Notice: ${json.error}` : 'No tickets in queue.', 'error');
         return;
       }
 
@@ -245,11 +266,11 @@
       });
 
       showBanner('HubSpot queue loaded successfully.', 'success');
-      setTimeout(() => { document.getElementById('statusBanner').style.display = 'none'; }, 2000);
+      setTimeout(hideBanners, 2000);
     } catch (err) {
       console.error(err);
       select.innerHTML = '<option value="">Failed to load ticket queue</option>';
-      showBanner(`Network error: ${err.message}. You can still paste Ticket ID manually.`, 'error');
+      showBanner(`Network error: ${err.message}. You can enter Ticket ID manually.`, 'error');
     }
   }
 
@@ -297,24 +318,33 @@
   async function submitComplaintRecord() {
     const submitBtn = document.getElementById('submitBtn');
     submitBtn.disabled = true;
-    showBanner('Generating Quality Complaint Doc & logging entry...', 'loading');
+    submitBtn.innerText = 'Processing... Generating Doc & Logging to Sheet';
+
+    showBanner('Generating Quality Complaint Doc & logging entry to Sheet...', 'loading');
+
+    const getValue = (id, fallback = '') => {
+      const el = document.getElementById(id);
+      return el ? el.value : fallback;
+    };
 
     const payload = {
-      ticketId: document.getElementById('ticketId').value,
-      complainantName: document.getElementById('complainantName').value,
-      dateReceived: document.getElementById('dateReceived').value,
-      facility: document.getElementById('facility').value,
-      phone: document.getElementById('phone').value,
-      email: document.getElementById('email').value,
-      subject: document.getElementById('subject').value,
-      description: document.getElementById('description').value,
-      productName: document.getElementById('productName').value,
-      serialLot: document.getElementById('serialLot').value,
-      malfunction: document.getElementById('malfunction').value,
-      patientInjury: document.getElementById('patientInjury').value,
-      mdrReportable: document.getElementById('mdrReportable').value,
-      qaNotes: document.getElementById('qaNotes').value
+      ticketId: getValue('ticketId'),
+      complainantName: getValue('complainantName'),
+      dateReceived: getValue('dateReceived'),
+      facility: getValue('facility'),
+      phone: getValue('phone'),
+      email: getValue('email'),
+      subject: getValue('subject'),
+      description: getValue('description'),
+      productName: getValue('productName', 'Band Connect Clinic Kit'),
+      serialLot: getValue('serialLot'),
+      malfunction: getValue('malfunction', 'No'),
+      patientInjury: getValue('patientInjury', 'No'),
+      mdrReportable: getValue('mdrReportable', 'No'),
+      qaNotes: getValue('qaNotes')
     };
+
+    console.log('Dispatching payload:', payload);
 
     try {
       const res = await fetch(APPS_SCRIPT_URL, {
@@ -324,17 +354,23 @@
       });
 
       const json = await res.json();
+      console.log('Server response:', json);
+
       if (!json.success) {
         showBanner(`Submission Failed: ${json.error}`, 'error');
         submitBtn.disabled = false;
+        submitBtn.innerText = 'Generate Complaint Record & Log Entry';
         return;
       }
 
-      showBanner(`Success! Created Record <strong>${json.complaintNumber}</strong>. <a href="${json.docUrl}" target="_blank" style="color: #03543f; text-decoration: underline;">Open Generated Document</a>`, 'success');
+      showBanner(`Success! Created Record <strong>${json.complaintNumber}</strong>. <a href="${json.docUrl}" target="_blank" style="color: #03543f; text-decoration: underline; font-weight: bold;">Open Generated Document</a>`, 'success');
       submitBtn.disabled = false;
+      submitBtn.innerText = 'Generate Complaint Record & Log Entry';
     } catch (err) {
+      console.error('Submission Catch:', err);
       showBanner(`Error submitting complaint: ${err.message}`, 'error');
       submitBtn.disabled = false;
+      submitBtn.innerText = 'Generate Complaint Record & Log Entry';
     }
   }
 </script>
