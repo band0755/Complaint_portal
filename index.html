@@ -1,339 +1,335 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>FDA Complaint Intake Portal</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quality Complaint Management Portal</title>
   <style>
-    :root {
-      --bg: #0f172a;
-      --card-bg: #1e293b;
-      --border: #334155;
-      --primary: #2563eb;
-      --primary-hover: #1d4ed8;
-      --text: #f8fafc;
-      --text-muted: #94a3b8;
-      --accent: #10b981;
-      --danger: #ef4444;
-    }
     body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       margin: 0;
       padding: 24px;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background-color: var(--bg);
-      color: var(--text);
+      background-color: #f4f6f8;
+      color: #1a202c;
     }
     .container {
       max-width: 900px;
       margin: 0 auto;
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: 10px;
+      background: #ffffff;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
       padding: 32px;
     }
     h1 {
       margin-top: 0;
-      font-size: 1.5rem;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
+      font-size: 24px;
+      border-bottom: 2px solid #e2e8f0;
+      padding-bottom: 12px;
     }
-    .badge {
-      background: #334155;
-      font-size: 0.8rem;
-      padding: 4px 10px;
-      border-radius: 999px;
-    }
-    fieldset {
-      border: 1px solid var(--border);
-      border-radius: 8px;
+    .banner {
+      display: none;
+      padding: 14px 18px;
+      border-radius: 6px;
       margin-bottom: 24px;
+      font-weight: 500;
+    }
+    .banner.success { display: block; background: #def7ec; color: #03543f; border: 1px solid #84e1bc; }
+    .banner.error { display: block; background: #fde8e8; color: #9b1c1c; border: 1px solid #f8b4b4; }
+    .banner.loading { display: block; background: #e1effe; color: #1e429f; border: 1px solid #a4cafe; }
+
+    fieldset {
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
       padding: 20px;
+      margin-bottom: 24px;
     }
     legend {
       font-weight: 600;
       padding: 0 8px;
-      color: #38bdf8;
+      color: #2d3748;
     }
-    .form-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 16px;
-    }
-    .field {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
+    .form-group {
+      margin-bottom: 16px;
     }
     label {
-      font-size: 0.85rem;
-      color: var(--text-muted);
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: #4a5568;
     }
-    input, select, textarea {
-      background: #0f172a;
-      border: 1px solid var(--border);
-      color: var(--text);
-      padding: 10px 12px;
-      border-radius: 6px;
-      font-size: 0.9rem;
-      box-sizing: border-box;
+    input[type="text"], input[type="email"], select, textarea {
       width: 100%;
+      box-sizing: border-box;
+      padding: 9px 12px;
+      border: 1px solid #cbd5e0;
+      border-radius: 5px;
+      font-size: 14px;
     }
-    textarea {
-      resize: vertical;
-      min-height: 80px;
-      font-family: inherit;
-    }
-    .search-bar {
-      display: flex;
-      gap: 12px;
-      margin-bottom: 24px;
-    }
-    button {
-      cursor: pointer;
-      background: var(--primary);
+    textarea { resize: vertical; min-height: 80px; }
+    .row { display: flex; gap: 16px; }
+    .row .form-group { flex: 1; }
+
+    .btn {
+      background-color: #2563eb;
       color: white;
       border: none;
-      padding: 10px 20px;
-      border-radius: 6px;
+      padding: 10px 18px;
+      font-size: 14px;
       font-weight: 600;
-      transition: background 0.2s ease;
+      border-radius: 5px;
+      cursor: pointer;
     }
-    button:hover { background: var(--primary-hover); }
-    button:disabled { opacity: 0.5; cursor: not-allowed; }
-    .submit-btn {
+    .btn:hover { background-color: #1d4ed8; }
+    .btn:disabled { background-color: #94a3b8; cursor: not-allowed; }
+    .btn-submit {
+      background-color: #059669;
       width: 100%;
       padding: 14px;
-      font-size: 1rem;
-      background: var(--accent);
+      font-size: 16px;
     }
-    .submit-btn:hover { background: #059669; }
-    .status {
-      margin-bottom: 20px;
-      padding: 12px 16px;
-      border-radius: 6px;
-      display: none;
-    }
-    .status.success {
-      display: block;
-      background: #064e3b;
-      color: #6ee7b7;
-      border: 1px solid #059669;
-    }
-    .status.error {
-      display: block;
-      background: #7f1d1d;
-      color: #fca5a5;
-      border: 1px solid #ef4444;
-    }
+    .btn-submit:hover { background-color: #047857; }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>
-      BQF-TMP-002 Complaint Intake Portal
-      <span class="badge">FDA 21 CFR 820.198</span>
-    </h1>
 
-    <div class="search-bar">
-      <input type="text" id="ticketInput" placeholder="Enter HubSpot Ticket ID (e.g. 49212355499)">
-      <button id="fetchBtn" onclick="handleFetch()">Fetch Ticket</button>
+<div class="container">
+  <h1>Regulatory Complaint Intake Portal</h1>
+  
+  <div id="statusBanner" class="banner"></div>
+
+  <!-- SECTION 1: TICKET SELECTION -->
+  <fieldset>
+    <legend>1. HubSpot Ingestion Queue</legend>
+    <div class="form-group">
+      <label for="ticketSelect">Select Open Complaint Ticket from HubSpot:</label>
+      <select id="ticketSelect" onchange="onTicketSelected()">
+        <option value="">Loading tickets from HubSpot...</option>
+      </select>
     </div>
+    <div class="row">
+      <div class="form-group">
+        <label for="ticketId">Ticket ID:</label>
+        <input type="text" id="ticketId" placeholder="Or enter Ticket ID manually">
+      </div>
+      <div class="form-group" style="align-self: flex-end;">
+        <button class="btn" type="button" onclick="fetchTicketById()">Fetch Ticket Details</button>
+      </div>
+    </div>
+  </fieldset>
 
-    <div id="statusBox" class="status"></div>
+  <!-- SECTION 2: COMPLAINANT & DETAILS -->
+  <fieldset>
+    <legend>2. Complainant & Incident Information</legend>
+    <div class="row">
+      <div class="form-group">
+        <label for="complainantName">Name of Complainant:</label>
+        <input type="text" id="complainantName">
+      </div>
+      <div class="form-group">
+        <label for="dateReceived">Date Received:</label>
+        <input type="text" id="dateReceived">
+      </div>
+    </div>
+    <div class="row">
+      <div class="form-group">
+        <label for="facility">Facility / Company:</label>
+        <input type="text" id="facility">
+      </div>
+      <div class="form-group">
+        <label for="phone">Phone #:</label>
+        <input type="text" id="phone">
+      </div>
+      <div class="form-group">
+        <label for="email">Email Address:</label>
+        <input type="email" id="email">
+      </div>
+    </div>
+    <div class="form-group">
+      <label for="subject">Ticket Subject:</label>
+      <input type="text" id="subject">
+    </div>
+    <div class="form-group">
+      <label for="description">Complaint Narrative / Description:</label>
+      <textarea id="description"></textarea>
+    </div>
+  </fieldset>
 
-    <form id="complaintForm" onsubmit="handleSubmit(event)">
-      <!-- Section 1: Ingested Data -->
-      <fieldset>
-        <legend>1. General & HubSpot Ingested Data</legend>
-        <div class="form-grid">
-          <div class="field">
-            <label>HubSpot Ticket ID</label>
-            <input type="text" id="ticketId" name="ticketId" readonly required>
-          </div>
-          <div class="field">
-            <label>Date Received</label>
-            <input type="text" id="dateReceived" name="dateReceived" required>
-          </div>
-          <div class="field">
-            <label>Complainant Name</label>
-            <input type="text" id="complainantName" name="complainantName" required>
-          </div>
-          <div class="field">
-            <label>Facility / Organization</label>
-            <input type="text" id="facility" name="facility">
-          </div>
-          <div class="field">
-            <label>Email</label>
-            <input type="email" id="email" name="email">
-          </div>
-          <div class="field">
-            <label>Phone</label>
-            <input type="text" id="phone" name="phone">
-          </div>
-        </div>
-        <div class="field" style="margin-top: 16px;">
-          <label>Ticket Subject</label>
-          <input type="text" id="subject" name="subject" required>
-        </div>
-        <div class="field" style="margin-top: 16px;">
-          <label>Complainant Narrative / Description</label>
-          <textarea id="description" name="description" rows="4"></textarea>
-        </div>
-      </fieldset>
+  <!-- SECTION 3: PRODUCT & REGULATORY TRIAGE -->
+  <fieldset>
+    <legend>3. Product & Regulatory Triage (QA)</legend>
+    <div class="row">
+      <div class="form-group">
+        <label for="productName">Product Name:</label>
+        <input type="text" id="productName" value="Band Connect Clinic Kit">
+      </div>
+      <div class="form-group">
+        <label for="serialLot">Serial / Lot #:</label>
+        <input type="text" id="serialLot" placeholder="e.g. SN-88234">
+      </div>
+    </div>
+    <div class="row">
+      <div class="form-group">
+        <label for="malfunction">Device Malfunction?</label>
+        <select id="malfunction">
+          <option value="No">No</option>
+          <option value="Yes">Yes</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="patientInjury">Patient Injury Involved?</label>
+        <select id="patientInjury">
+          <option value="No">No</option>
+          <option value="Yes">Yes</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="mdrReportable">MDR Reportable (21 CFR 803)?</label>
+        <select id="mdrReportable">
+          <option value="No">No</option>
+          <option value="Yes">Yes</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label for="qaNotes">QA / Triage Notes:</label>
+      <textarea id="qaNotes" placeholder="Enter root cause notes, clinical review comments, or justification..."></textarea>
+    </div>
+  </fieldset>
 
-      <!-- Section 2: Device Details -->
-      <fieldset>
-        <legend>2. Device Information</legend>
-        <div class="form-grid">
-          <div class="field">
-            <label>Product Name / Model</label>
-            <select name="productName" id="productName" required>
-              <option value="Band Connect Clinic Kit">Band Connect Clinic Kit</option>
-              <option value="Band Connect Patient Sensor">Band Connect Patient Sensor</option>
-              <option value="Band Connect Patient App">Band Connect Patient App</option>
-              <option value="Band Connect Clinician Portal">Band Connect Clinician Portal</option>
-            </select>
-          </div>
-          <div class="field">
-            <label>Serial # / Lot # / App Version</label>
-            <input type="text" name="serialLot" id="serialLot" placeholder="e.g. SN-88321 or v2.4.1">
-          </div>
-        </div>
-      </fieldset>
+  <button class="btn btn-submit" id="submitBtn" type="button" onclick="submitComplaintRecord()">
+    Generate Complaint Record &amp; Log Entry
+  </button>
+</div>
 
-      <!-- Section 3: Regulatory QA Assessment -->
-      <fieldset>
-        <legend>3. QA & Regulatory Triage</legend>
-        <div class="form-grid">
-          <div class="field">
-            <label>Device Malfunction?</label>
-            <select name="malfunction" id="malfunction" required>
-              <option value="No">No</option>
-              <option value="Yes">Yes</option>
-            </select>
-          </div>
-          <div class="field">
-            <label>Patient Injury / Adverse Event?</label>
-            <select name="patientInjury" id="patientInjury" required>
-              <option value="No">No</option>
-              <option value="Yes">Yes</option>
-            </select>
-          </div>
-          <div class="field">
-            <label>MDR Reportable (21 CFR 803)?</label>
-            <select name="mdrReportable" id="mdrReportable" required>
-              <option value="No">No</option>
-              <option value="Yes">Yes</option>
-            </select>
-          </div>
-          <div class="field">
-            <label>Investigation Required?</label>
-            <select name="investigationRequired" id="investigationRequired" required>
-              <option value="Yes">Yes</option>
-              <option value="No">No</option>
-            </select>
-          </div>
-        </div>
-        <div class="field" style="margin-top: 16px;">
-          <label>Initial Risk Assessment / QA Notes</label>
-          <textarea name="qaNotes" id="qaNotes" placeholder="Summary of failure mode and preliminary evaluation..."></textarea>
-        </div>
-      </fieldset>
+<script>
+  // Replace with your current Apps Script Web App exec URL
+  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzQn_X3g_4U_e7wYFqM8_JvH7qK4fG4NlB_YOUR_EXEC_ID/exec';
 
-      <button type="submit" id="submitBtn" class="submit-btn">Generate Complaint Record & Log Entry</button>
-    </form>
-  </div>
+  function showBanner(msg, type) {
+    const b = document.getElementById('statusBanner');
+    b.className = `banner ${type}`;
+    b.innerHTML = msg;
+  }
 
-  <script>
-    const SCRIPT_API_URL = 'https://script.google.com/macros/s/AKfycbwTBU_yFc6Lnw_I5grItuZdUVUxsUBU9HIAJFcwawPiYWTsEGih8z3zsnK7YkTF2gB-/exec';
+  // Load HubSpot ticket queue on page load
+  window.addEventListener('DOMContentLoaded', loadTicketQueue);
 
-    function setStatus(msg, type) {
-      const el = document.getElementById('statusBox');
-      el.className = 'status ' + type;
-      el.innerHTML = msg;
-    }
+  async function loadTicketQueue() {
+    showBanner('Loading open tickets from HubSpot...', 'loading');
+    const select = document.getElementById('ticketSelect');
 
-    async function handleFetch() {
-      const ticketId = document.getElementById('ticketInput').value.trim();
-      if (!ticketId) return alert('Please enter a ticket ID');
+    try {
+      const res = await fetch(`${APPS_SCRIPT_URL}?action=listTickets`);
+      const json = await res.parse ? await res.json() : JSON.parse(await res.text());
 
-      const btn = document.getElementById('fetchBtn');
-      btn.disabled = true;
-      btn.innerText = 'Fetching...';
-      setStatus('Querying HubSpot CRM via Backend API...', 'success');
-
-      try {
-        const response = await fetch(`${SCRIPT_API_URL}?action=getTicket&ticketId=${encodeURIComponent(ticketId)}`);
-        const res = await response.json();
-
-        btn.disabled = false;
-        btn.innerText = 'Fetch Ticket';
-
-        if (!res.success) throw new Error(res.error || 'Failed to fetch ticket');
-
-        const data = res.data;
-        document.getElementById('ticketId').value = data.ticketId || '';
-        document.getElementById('dateReceived').value = data.createDate || '';
-        document.getElementById('complainantName').value = data.complainantName || '';
-        document.getElementById('facility').value = data.company || '';
-        document.getElementById('email').value = data.email || '';
-        document.getElementById('phone').value = data.phone || '';
-        document.getElementById('subject').value = data.subject || '';
-        document.getElementById('description').value = data.content || '';
-        setStatus('Ticket data populated successfully!', 'success');
-      } catch (err) {
-        btn.disabled = false;
-        btn.innerText = 'Fetch Ticket';
-        setStatus('Error: ' + err.message, 'error');
+      if (!json.success || !json.data || json.data.length === 0) {
+        select.innerHTML = '<option value="">No open tickets found</option>';
+        showBanner('Ready. No pending tickets found or select manual entry.', 'info');
+        return;
       }
+
+      select.innerHTML = '<option value="">-- Choose a Ticket from Queue (' + json.data.length + ' available) --</option>';
+      json.data.forEach(t => {
+        const opt = document.createElement('option');
+        opt.value = t.id;
+        opt.textContent = `#${t.id} - ${t.subject} [${t.status}] (${t.createDate || 'N/A'})`;
+        select.appendChild(opt);
+      });
+
+      showBanner('HubSpot queue loaded successfully.', 'success');
+      setTimeout(() => { document.getElementById('statusBanner').style.display = 'none'; }, 2500);
+    } catch (err) {
+      select.innerHTML = '<option value="">Failed to load ticket queue</option>';
+      showBanner('Could not load ticket list. You can still paste Ticket ID manually.', 'error');
+    }
+  }
+
+  function onTicketSelected() {
+    const selectedId = document.getElementById('ticketSelect').value;
+    if (selectedId) {
+      document.getElementById('ticketId').value = selectedId;
+      fetchTicketById();
+    }
+  }
+
+  async function fetchTicketById() {
+    const ticketId = document.getElementById('ticketId').value.trim();
+    if (!ticketId) {
+      alert('Please enter or select a Ticket ID.');
+      return;
     }
 
-    async function handleSubmit(e) {
-      e.preventDefault();
-      const btn = document.getElementById('submitBtn');
-      btn.disabled = true;
-      btn.innerText = 'Generating Google Doc & Updating Sheet...';
-      setStatus('Creating FDA Complaint Document...', 'success');
+    showBanner(`Fetching ticket #${ticketId} from HubSpot...`, 'loading');
 
-      const payload = {
-        ticketId: document.getElementById('ticketId').value,
-        dateReceived: document.getElementById('dateReceived').value,
-        complainantName: document.getElementById('complainantName').value,
-        facility: document.getElementById('facility').value,
-        email: document.getElementById('email').value,
-        phone: document.getElementById('phone').value,
-        subject: document.getElementById('subject').value,
-        description: document.getElementById('description').value,
-        productName: document.getElementById('productName').value,
-        serialLot: document.getElementById('serialLot').value,
-        malfunction: document.getElementById('malfunction').value,
-        patientInjury: document.getElementById('patientInjury').value,
-        mdrReportable: document.getElementById('mdrReportable').value,
-        investigationRequired: document.getElementById('investigationRequired').value,
-        qaNotes: document.getElementById('qaNotes').value
-      };
+    try {
+      const res = await fetch(`${APPS_SCRIPT_URL}?action=getTicket&ticketId=${ticketId}`);
+      const json = await res.json();
 
-      try {
-        const response = await fetch(SCRIPT_API_URL, {
-          method: 'POST',
-          body: JSON.stringify(payload)
-        });
-        const res = await response.json();
-
-        btn.disabled = false;
-        btn.innerText = 'Generate Complaint Record & Log Entry';
-
-        if (!res.success) throw new Error(res.error || 'Submission failed');
-
-        setStatus(`Complaint created: <strong>${res.complaintNumber}</strong>. <a href="${res.docUrl}" target="_blank" style="color:white;text-decoration:underline;margin-left:8px;">Open Complaint Doc &rarr;</a>`, 'success');
-        document.getElementById('complaintForm').reset();
-      } catch (err) {
-        btn.disabled = false;
-        btn.innerText = 'Generate Complaint Record & Log Entry';
-        setStatus('Submission failed: ' + err.message, 'error');
+      if (!json.success) {
+        showBanner(`HubSpot Error: ${json.error}`, 'error');
+        return;
       }
+
+      const d = json.data;
+      document.getElementById('complainantName').value = d.complainantName || '';
+      document.getElementById('dateReceived').value = d.createDate || '';
+      document.getElementById('facility').value = d.company || '';
+      document.getElementById('phone').value = d.phone || '';
+      document.getElementById('email').value = d.email || '';
+      document.getElementById('subject').value = d.subject || '';
+      document.getElementById('description').value = d.content || '';
+
+      showBanner(`Ticket #${ticketId} loaded successfully. Review fields and submit.`, 'success');
+    } catch (err) {
+      showBanner(`Network Error fetching ticket: ${err.message}`, 'error');
     }
-  </script>
+  }
+
+  async function submitComplaintRecord() {
+    const submitBtn = document.getElementById('submitBtn');
+    submitBtn.disabled = true;
+    showBanner('Generating Quality Complaint Doc & logging entry...', 'loading');
+
+    const payload = {
+      ticketId: document.getElementById('ticketId').value,
+      complainantName: document.getElementById('complainantName').value,
+      dateReceived: document.getElementById('dateReceived').value,
+      facility: document.getElementById('facility').value,
+      phone: document.getElementById('phone').value,
+      email: document.getElementById('email').value,
+      subject: document.getElementById('subject').value,
+      description: document.getElementById('description').value,
+      productName: document.getElementById('productName').value,
+      serialLot: document.getElementById('serialLot').value,
+      malfunction: document.getElementById('malfunction').value,
+      patientInjury: document.getElementById('patientInjury').value,
+      mdrReportable: document.getElementById('mdrReportable').value,
+      qaNotes: document.getElementById('qaNotes').value
+    };
+
+    try {
+      const res = await fetch(APPS_SCRIPT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(payload)
+      });
+
+      const json = await res.json();
+      if (!json.success) {
+        showBanner(`Submission Failed: ${json.error}`, 'error');
+        submitBtn.disabled = false;
+        return;
+      }
+
+      showBanner(`Success! Created Record <strong>${json.complaintNumber}</strong>. <a href="${json.docUrl}" target="_blank" style="color: #03543f; text-decoration: underline;">Open Generated Document</a>`, 'success');
+      submitBtn.disabled = false;
+    } catch (err) {
+      showBanner(`Error submitting complaint: ${err.message}`, 'error');
+      submitBtn.disabled = false;
+    }
+  }
+</script>
+
 </body>
 </html>
