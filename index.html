@@ -258,6 +258,55 @@
       background: linear-gradient(135deg, #7c71ba 0%, #5c50a6 100%);
       box-shadow: 0 10px 28px rgba(112, 102, 169, 0.5);
     }
+
+    /* PASSWORD SHOW/HIDE */
+    .pw-wrap { position: relative; }
+    .pw-wrap input { padding-right: 46px; }
+    .pw-toggle {
+      position: absolute;
+      top: 50%;
+      right: 6px;
+      transform: translateY(-50%);
+      width: 36px;
+      height: 36px;
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 6px;
+    }
+    .pw-toggle:hover { color: var(--text-main); background: var(--card-inner); }
+    .pw-toggle svg { width: 20px; height: 20px; }
+
+    /* SOURCE OPTIONS */
+    .option-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px 22px;
+      align-items: center;
+    }
+    .option-row label.opt {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0;
+      font-size: 14px;
+      font-weight: 500;
+      text-transform: none;
+      letter-spacing: 0;
+      color: var(--text-main);
+      cursor: pointer;
+    }
+    .option-row input[type="radio"] { accent-color: var(--accent-cyan); width: 16px; height: 16px; }
+    .option-row #sourceOther { width: 220px; padding: 8px 12px; }
+    .field-hint { font-size: 12px; color: var(--text-muted); margin-top: 6px; }
+
+    @media (max-width: 640px) {
+      .row { flex-direction: column; gap: 0; }
+    }
   </style>
 </head>
 <body>
@@ -272,8 +321,12 @@
       </div>
       <h2>Internal Quality Portal</h2>
       <p>Please enter authorized credentials to access 21 CFR 820 complaint intake.</p>
-      <div class="form-group" style="text-align: left;">
-        <input type="password" id="authPassword" placeholder="Enter password" onkeydown="if(event.key==='Enter') verifyPassword()">
+      <div class="form-group pw-wrap" style="text-align: left;">
+        <input type="password" id="authPassword" placeholder="Enter password" autocomplete="current-password" onkeydown="if(event.key==='Enter') verifyPassword()">
+        <button type="button" class="pw-toggle" id="pwToggle" onclick="togglePassword()" aria-label="Show password" title="Show password">
+          <svg id="eyeOpen" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>
+          <svg id="eyeClosed" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M3 3l18 18"/><path d="M10.6 10.6a3 3 0 0 0 4.2 4.2"/><path d="M9.4 5.2A10.4 10.4 0 0 1 12 5c6.5 0 10 7 10 7a17 17 0 0 1-3.2 4.2"/><path d="M6.6 6.6C3.8 8.4 2 12 2 12s3.5 7 10 7a9.8 9.8 0 0 0 5.4-1.6"/></svg>
+        </button>
       </div>
       <button class="btn" style="width: 100%;" onclick="verifyPassword()">Authenticate</button>
       <div id="authError" style="color: var(--accent-red); font-size: 13px; margin-top: 14px; display: none;">
@@ -300,19 +353,13 @@
 
     <div id="statusBannerTop" class="banner"></div>
 
-    <!-- SECTION 1: TICKET QUEUE -->
+    <!-- SECTION 1: TICKET ID -->
     <fieldset>
-      <legend>1. Ingestion Queue</legend>
-      <div class="form-group">
-        <label for="ticketSelect">Pending HubSpot Ticket Queue:</label>
-        <select id="ticketSelect" onchange="onTicketSelected()">
-          <option value="">Connecting to HubSpot...</option>
-        </select>
-      </div>
+      <legend>1. HubSpot Ticket</legend>
       <div class="row">
         <div class="form-group">
-          <label for="ticketId">Ticket ID:</label>
-          <input type="text" id="ticketId" placeholder="Or enter Ticket ID manually">
+          <label for="ticketId">HubSpot Ticket ID:</label>
+          <input type="text" id="ticketId" inputmode="numeric" placeholder="Enter HubSpot ticket number" onkeydown="if(event.key==='Enter') fetchTicketById()">
         </div>
         <div class="form-group" style="align-self: flex-end;">
           <button class="btn" type="button" onclick="fetchTicketById()">Fetch Ticket Details</button>
@@ -329,15 +376,22 @@
           <input type="text" id="complainantName">
         </div>
         <div class="form-group">
-          <label for="dateReceived">Date Received:</label>
+          <label for="dateReceived">Date Complaint Received:</label>
           <input type="text" id="dateReceived">
         </div>
       </div>
       <div class="row">
         <div class="form-group">
-          <label for="facility">Facility / Company:</label>
-          <input type="text" id="facility">
+          <label for="facility">Company Affiliation:</label>
+          <input type="text" id="facility" placeholder="Organization the complainant belongs to">
         </div>
+        <div class="form-group">
+          <label for="dateAware">Date Became Aware:</label>
+          <input type="text" id="dateAware">
+          <div class="field-hint">Set to today's date (the day this entry is made).</div>
+        </div>
+      </div>
+      <div class="row">
         <div class="form-group">
           <label for="phone">Phone #:</label>
           <input type="text" id="phone">
@@ -345,6 +399,27 @@
         <div class="form-group">
           <label for="email">Email Address:</label>
           <input type="email" id="email">
+        </div>
+      </div>
+      <div class="row">
+        <div class="form-group">
+          <label for="streetAddress">Street Address:</label>
+          <input type="text" id="streetAddress">
+        </div>
+        <div class="form-group">
+          <label for="cityZip">City / Zip Code:</label>
+          <input type="text" id="cityZip">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Source:</label>
+        <div class="option-row" id="sourceGroup">
+          <label class="opt"><input type="radio" name="source" value="Phone"> Phone</label>
+          <label class="opt"><input type="radio" name="source" value="Email"> Email</label>
+          <label class="opt"><input type="radio" name="source" value="Website"> Website</label>
+          <label class="opt"><input type="radio" name="source" value="Sales Rep"> Sales Rep</label>
+          <label class="opt"><input type="radio" name="source" value="Other"> Other</label>
+          <input type="text" id="sourceOther" placeholder="Describe other source" aria-label="Other source" disabled>
         </div>
       </div>
       <div class="form-group">
@@ -416,20 +491,64 @@
       
       if (input === 'Complaint2026!') {
         sessionStorage.setItem('bc_qa_auth', 'authenticated');
-        document.getElementById('authOverlay').style.display = 'none';
-        document.getElementById('mainPortal').style.display = 'block';
-        loadTicketQueue();
+        openPortal();
       } else {
         errorMsg.style.display = 'block';
       }
     }
 
-    // Auto-login if previously verified in the active session
+    // Show / hide password (eye icon)
+    function togglePassword() {
+      const input = document.getElementById('authPassword');
+      const btn = document.getElementById('pwToggle');
+      const show = input.type === 'password';
+      input.type = show ? 'text' : 'password';
+      document.getElementById('eyeOpen').style.display = show ? 'none' : 'block';
+      document.getElementById('eyeClosed').style.display = show ? 'block' : 'none';
+      btn.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
+      btn.title = show ? 'Hide password' : 'Show password';
+      input.focus();
+    }
+
+    function openPortal() {
+      document.getElementById('authOverlay').style.display = 'none';
+      document.getElementById('mainPortal').style.display = 'block';
+      setDateAwareToday();
+      document.getElementById('ticketId').focus();
+    }
+
+    // Date Became Aware = the date the entry is made on the portal (MM/DD/YYYY)
+    function todayMDY() {
+      const d = new Date();
+      const mm = String(d.getMonth() + 1).padStart(2, '0');
+      const dd = String(d.getDate()).padStart(2, '0');
+      return `${mm}/${dd}/${d.getFullYear()}`;
+    }
+    function setDateAwareToday() {
+      document.getElementById('dateAware').value = todayMDY();
+    }
+
+    // Source radio buttons: "Other" enables its text box
+    function getSource() {
+      const checked = document.querySelector('input[name="source"]:checked');
+      return checked ? checked.value : '';
+    }
+    function setSource(value) {
+      document.querySelectorAll('input[name="source"]').forEach(r => { r.checked = (r.value === value); });
+      syncSourceOther();
+    }
+    function syncSourceOther() {
+      const other = document.getElementById('sourceOther');
+      const isOther = getSource() === 'Other';
+      other.disabled = !isOther;
+      if (!isOther) other.value = '';
+    }
+
     window.addEventListener('DOMContentLoaded', () => {
+      document.querySelectorAll('input[name="source"]').forEach(r => r.addEventListener('change', syncSourceOther));
+      // Auto-login if previously verified in the active session
       if (sessionStorage.getItem('bc_qa_auth') === 'authenticated') {
-        document.getElementById('authOverlay').style.display = 'none';
-        document.getElementById('mainPortal').style.display = 'block';
-        loadTicketQueue();
+        openPortal();
       }
     });
 
@@ -452,48 +571,16 @@
       if (bottom) bottom.style.display = 'none';
     }
 
-    async function loadTicketQueue() {
-      showBanner('Syncing open tickets from HubSpot...', 'loading');
-      const select = document.getElementById('ticketSelect');
-
-      try {
-        const res = await fetch(`${APPS_SCRIPT_URL}?action=listTickets`);
-        const json = await res.json();
-
-        if (!json.success || !json.data || json.data.length === 0) {
-          select.innerHTML = '<option value="">No open tickets available in queue</option>';
-          hideBanners();
-          return;
-        }
-
-        select.innerHTML = '<option value="">-- Choose a Ticket (' + json.data.length + ' Available) --</option>';
-        json.data.forEach(t => {
-          const opt = document.createElement('option');
-          opt.value = t.id;
-          opt.textContent = `#${t.id} - ${t.subject} [${t.status}] (${t.createDate || 'N/A'})`;
-          select.appendChild(opt);
-        });
-
-        showBanner('HubSpot queue loaded successfully.', 'success');
-        setTimeout(hideBanners, 2000);
-      } catch (err) {
-        select.innerHTML = '<option value="">Failed to connect to HubSpot</option>';
-        showBanner(`Could not fetch ticket queue: ${err.message}`, 'error');
-      }
-    }
-
-    function onTicketSelected() {
-      const selectedId = document.getElementById('ticketSelect').value;
-      if (selectedId) {
-        document.getElementById('ticketId').value = selectedId;
-        fetchTicketById();
-      }
-    }
-
     async function fetchTicketById() {
       const ticketId = document.getElementById('ticketId').value.trim();
       if (!ticketId) {
-        alert('Please select or input a Ticket ID.');
+        showBanner('Enter a HubSpot Ticket ID first.', 'error');
+        document.getElementById('ticketId').focus();
+        return;
+      }
+      if (!/^\d+$/.test(ticketId)) {
+        showBanner('Ticket ID should contain numbers only.', 'error');
+        document.getElementById('ticketId').focus();
         return;
       }
 
@@ -516,6 +603,12 @@
         document.getElementById('email').value = d.email || '';
         document.getElementById('subject').value = d.subject || '';
         document.getElementById('description').value = d.content || '';
+        // Address: filled only if HubSpot has it, otherwise left blank
+        document.getElementById('streetAddress').value = d.streetAddress || '';
+        document.getElementById('cityZip').value = d.cityZip || '';
+        // Source: pre-selected from the HubSpot ticket channel when known (user can change it)
+        setSource(d.source || '');
+        setDateAwareToday();
 
         showBanner(`Ticket #${ticketId} populated. Ready for QA triage.`, 'success');
       } catch (err) {
@@ -524,6 +617,11 @@
     }
 
     async function submitComplaintRecord() {
+      if (getSource() === 'Other' && !document.getElementById('sourceOther').value.trim()) {
+        showBanner('Describe the "Other" source before submitting.', 'error');
+        document.getElementById('sourceOther').focus();
+        return;
+      }
       const submitBtn = document.getElementById('submitBtn');
       submitBtn.disabled = true;
       submitBtn.innerText = 'Cloning Doc & Appending Master Log...';
@@ -539,8 +637,13 @@
         complainantName: getValue('complainantName'),
         dateReceived: getValue('dateReceived'),
         facility: getValue('facility'),
+        dateAware: getValue('dateAware'),
         phone: getValue('phone'),
         email: getValue('email'),
+        streetAddress: getValue('streetAddress'),
+        cityZip: getValue('cityZip'),
+        source: getSource(),
+        sourceOther: getValue('sourceOther'),
         subject: getValue('subject'),
         description: getValue('description'),
         productName: getValue('productName', 'Band Connect Clinic Kit'),
