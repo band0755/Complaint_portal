@@ -304,8 +304,25 @@
     .option-row #sourceOther { width: 220px; padding: 8px 12px; }
     .field-hint { font-size: 12px; color: var(--text-muted); margin-top: 6px; }
 
+    .option-row input[type="text"] { width: 220px; padding: 8px 12px; }
+    .yn-row { display: flex; gap: 22px; }
+    .question { font-size: 14px; color: var(--text-main); margin: 0 0 10px; line-height: 1.5; }
+    .q-block { padding: 16px 0; border-bottom: 1px solid var(--border-color); }
+    .q-block:first-of-type { padding-top: 0; }
+    .q-block:last-child { border-bottom: none; padding-bottom: 0; }
+    .reveal { margin-top: 14px; }
+    .reveal[hidden] { display: none; }
+    .route-note { font-size: 13px; margin-top: 10px; padding: 10px 12px; border-radius: 8px; }
+    .route-note.urgent { background: rgba(239, 68, 68, 0.12); border: 1px solid var(--accent-red); color: #fca5a5; }
+    .route-note.normal { background: rgba(37, 194, 211, 0.10); border: 1px solid var(--accent-cyan); color: #a5f3fc; }
+    .err { color: #f87171; font-size: 13px; margin-top: 6px; }
+    .err:empty { display: none; }
+    .has-error input[type="text"], .has-error input[type="email"], .has-error textarea { border-color: var(--accent-red); }
+    .readonly-note { font-size: 12px; color: var(--accent-cyan); font-weight: 500; text-transform: none; letter-spacing: 0; margin-left: 6px; }
+
     @media (max-width: 640px) {
       .row { flex-direction: column; gap: 0; }
+      .container { padding: 22px; width: 94%; }
     }
   </style>
 </head>
@@ -346,16 +363,17 @@
     <span class="header-badge">FDA 21 CFR 820.198 System</span>
   </header>
 
+
   <!-- PORTAL APPLICATION -->
   <div class="container" id="mainPortal" style="display: none;">
-    <h1 class="page-title">Regulatory Complaint Intake</h1>
-    <div class="page-subtitle">Direct CRM Ingestion &amp; Quality Record Generation Engine</div>
+    <h1 class="page-title">Customer Complaint Form</h1>
+    <div class="page-subtitle">BCF-TMP-002 &middot; Enter the HubSpot ticket, complete the remaining sections, then generate the form.</div>
 
     <div id="statusBannerTop" class="banner"></div>
 
-    <!-- SECTION 1: TICKET ID -->
+    <!-- HUBSPOT TICKET -->
     <fieldset>
-      <legend>1. HubSpot Ticket</legend>
+      <legend>HubSpot Ticket</legend>
       <div class="row">
         <div class="form-group">
           <label for="ticketId">HubSpot Ticket ID:</label>
@@ -365,11 +383,26 @@
           <button class="btn" type="button" onclick="fetchTicketById()">Fetch Ticket Details</button>
         </div>
       </div>
+      <div class="form-group" style="margin-bottom: 0;">
+        <label for="subject">Ticket Subject:</label>
+        <input type="text" id="subject">
+      </div>
     </fieldset>
 
-    <!-- SECTION 2: COMPLAINANT INFORMATION -->
+    <!-- 1. COMPLAINANT INFORMATION -->
     <fieldset>
-      <legend>2. Complainant &amp; Incident Information</legend>
+      <legend>1. Complainant Information</legend>
+      <div class="row">
+        <div class="form-group" data-field="receivedBy">
+          <label for="receivedBy">Complaint Received by:</label>
+          <input type="text" id="receivedBy" placeholder="Your full name">
+          <div class="err"></div>
+        </div>
+        <div class="form-group">
+          <label for="complaintNumberPreview">Complaint #:</label>
+          <input type="text" id="complaintNumberPreview" value="Assigned when the form is generated" disabled>
+        </div>
+      </div>
       <div class="row">
         <div class="form-group">
           <label for="complainantName">Name of Complainant:</label>
@@ -380,6 +413,21 @@
           <input type="text" id="dateReceived">
         </div>
       </div>
+
+      <div class="form-group" data-field="sourceCategory">
+        <label>Source Category:</label>
+        <div class="option-row">
+          <label class="opt"><input type="radio" name="sourceCategory" value="User facility"> User facility</label>
+          <label class="opt"><input type="radio" name="sourceCategory" value="Clinician"> Clinician</label>
+          <label class="opt"><input type="radio" name="sourceCategory" value="Patient"> Patient</label>
+          <label class="opt"><input type="radio" name="sourceCategory" value="Customer"> Customer</label>
+          <label class="opt"><input type="radio" name="sourceCategory" value="Distributor"> Distributor</label>
+          <label class="opt"><input type="radio" name="sourceCategory" value="Other"> Other</label>
+          <input type="text" id="sourceCategoryOther" placeholder="Describe other category" aria-label="Other source category" disabled>
+        </div>
+        <div class="err"></div>
+      </div>
+
       <div class="row">
         <div class="form-group">
           <label for="facility">Company Affiliation:</label>
@@ -393,27 +441,28 @@
       </div>
       <div class="row">
         <div class="form-group">
-          <label for="phone">Phone #:</label>
-          <input type="text" id="phone">
+          <label for="streetAddress">Street Address:</label>
+          <input type="text" id="streetAddress">
         </div>
         <div class="form-group">
-          <label for="email">Email Address:</label>
-          <input type="email" id="email">
+          <label for="phone">Phone #:</label>
+          <input type="text" id="phone">
         </div>
       </div>
       <div class="row">
         <div class="form-group">
-          <label for="streetAddress">Street Address:</label>
-          <input type="text" id="streetAddress">
+          <label for="email">Email Address:</label>
+          <input type="email" id="email">
         </div>
         <div class="form-group">
           <label for="cityZip">City / Zip Code:</label>
           <input type="text" id="cityZip">
         </div>
       </div>
-      <div class="form-group">
+
+      <div class="form-group" data-field="source" style="margin-bottom: 0;">
         <label>Source:</label>
-        <div class="option-row" id="sourceGroup">
+        <div class="option-row">
           <label class="opt"><input type="radio" name="source" value="Phone"> Phone</label>
           <label class="opt"><input type="radio" name="source" value="Email"> Email</label>
           <label class="opt"><input type="radio" name="source" value="Website"> Website</label>
@@ -421,20 +470,13 @@
           <label class="opt"><input type="radio" name="source" value="Other"> Other</label>
           <input type="text" id="sourceOther" placeholder="Describe other source" aria-label="Other source" disabled>
         </div>
-      </div>
-      <div class="form-group">
-        <label for="subject">Ticket Subject:</label>
-        <input type="text" id="subject">
-      </div>
-      <div class="form-group">
-        <label for="description">Complaint Narrative / Description:</label>
-        <textarea id="description"></textarea>
+        <div class="err"></div>
       </div>
     </fieldset>
 
-    <!-- SECTION 3: PRODUCT & REGULATORY TRIAGE -->
+    <!-- 2. PRODUCT INFORMATION -->
     <fieldset>
-      <legend>3. Product &amp; Regulatory Triage (QA)</legend>
+      <legend>2. Product Information</legend>
       <div class="row">
         <div class="form-group">
           <label for="productName">Product Name:</label>
@@ -442,62 +484,190 @@
         </div>
         <div class="form-group">
           <label for="serialLot">Serial / Lot #:</label>
-          <input type="text" id="serialLot" placeholder="e.g. SN-88234">
+          <input type="text" id="serialLot">
         </div>
       </div>
-      <div class="row">
-        <div class="form-group">
-          <label for="malfunction">Device Malfunction?</label>
-          <select id="malfunction">
-            <option value="No">No</option>
-            <option value="Yes">Yes</option>
-          </select>
+      <div class="form-group" style="margin-bottom: 0;">
+        <label for="otherInfo">Other Information:</label>
+        <textarea id="otherInfo" style="min-height: 70px;"></textarea>
+      </div>
+    </fieldset>
+
+    <!-- 3. COMPLAINT TRIAGE -->
+    <fieldset>
+      <legend>3. Complaint Triage</legend>
+
+      <div class="q-block" data-field="patientInvolved">
+        <p class="question">Was a patient or user involved?</p>
+        <div class="option-row yn-row">
+          <label class="opt"><input type="radio" name="patientInvolved" value="Yes"> Yes</label>
+          <label class="opt"><input type="radio" name="patientInvolved" value="No"> No</label>
         </div>
-        <div class="form-group">
-          <label for="patientInjury">Patient Injury Involved?</label>
-          <select id="patientInjury">
-            <option value="No">No</option>
-            <option value="Yes">Yes</option>
-          </select>
+        <div class="err"></div>
+      </div>
+
+      <div class="q-block" data-field="injury">
+        <p class="question">Did any injury, medical intervention, or death occur?</p>
+        <div class="option-row yn-row">
+          <label class="opt"><input type="radio" name="injury" value="Yes"> Yes</label>
+          <label class="opt"><input type="radio" name="injury" value="No"> No</label>
         </div>
-        <div class="form-group">
-          <label for="mdrReportable">MDR Reportable (21 CFR 803)?</label>
-          <select id="mdrReportable">
-            <option value="No">No</option>
-            <option value="Yes">Yes</option>
-          </select>
+        <div class="err"></div>
+        <div class="reveal" id="injuryDetail" hidden data-field="medicalImpact">
+          <label for="medicalImpact">Describe medical impact:</label>
+          <textarea id="medicalImpact"></textarea>
+          <div class="err"></div>
         </div>
       </div>
+
+      <div class="q-block" data-field="publicHealth">
+        <p class="question">Is there the possibility that a corrective action is required to prevent widespread, imminent danger to public health?</p>
+        <div class="option-row yn-row">
+          <label class="opt"><input type="radio" name="publicHealth" value="Yes"> Yes</label>
+          <label class="opt"><input type="radio" name="publicHealth" value="No"> No</label>
+        </div>
+        <div class="err"></div>
+        <div class="route-note urgent" id="phYesNote" hidden>Provide complaint information to the Head of Quality within 24 hours.</div>
+        <div class="route-note normal" id="phNoNote" hidden>Route for quality review within 10 business days.</div>
+      </div>
+    </fieldset>
+
+    <!-- 4. COMPLAINT DETAIL -->
+    <fieldset>
+      <legend>4. Complaint Detail</legend>
+
       <div class="form-group">
-        <label for="qaNotes">QA / Triage Notes:</label>
-        <textarea id="qaNotes" placeholder="Enter root cause analysis notes, verification details, or reporting justification..."></textarea>
+        <label for="description">Complaint (what happened, when it happened, and how the device was being used):</label>
+        <textarea id="description" style="min-height: 120px;"></textarea>
+      </div>
+
+      <div class="q-block" data-field="malfunction">
+        <p class="question">Did the device malfunction?</p>
+        <div class="option-row yn-row">
+          <label class="opt"><input type="radio" name="malfunction" value="Yes"> Yes</label>
+          <label class="opt"><input type="radio" name="malfunction" value="No"> No</label>
+        </div>
+        <div class="err"></div>
+        <div class="reveal" id="malfunctionDetail" hidden data-field="malfunctionDesc">
+          <label for="malfunctionDesc">Describe how:</label>
+          <textarea id="malfunctionDesc" style="min-height: 70px;"></textarea>
+          <div class="err"></div>
+        </div>
+      </div>
+
+      <div class="q-block" data-field="outOfSpec">
+        <p class="question">Was the product out of specification?</p>
+        <div class="option-row yn-row">
+          <label class="opt"><input type="radio" name="outOfSpec" value="Yes"> Yes</label>
+          <label class="opt"><input type="radio" name="outOfSpec" value="No"> No</label>
+        </div>
+        <div class="err"></div>
+        <div class="reveal" id="outOfSpecDetail" hidden data-field="outOfSpecDesc">
+          <label for="outOfSpecDesc">Describe how:</label>
+          <textarea id="outOfSpecDesc" style="min-height: 70px;"></textarea>
+          <div class="err"></div>
+        </div>
+      </div>
+
+      <div class="q-block" data-field="availableForEval">
+        <p class="question">Is the device available for evaluation?</p>
+        <div class="option-row yn-row">
+          <label class="opt"><input type="radio" name="availableForEval" value="Yes"> Yes</label>
+          <label class="opt"><input type="radio" name="availableForEval" value="No"> No</label>
+        </div>
+        <div class="err"></div>
+      </div>
+    </fieldset>
+
+    <!-- 5. PATIENT INFORMATION -->
+    <fieldset>
+      <legend>5. Patient Information</legend>
+
+      <div class="q-block" data-field="patientApplicable" style="border-bottom: none; padding-bottom: 0;">
+        <p class="question">Is patient information applicable to this complaint?</p>
+        <div class="option-row yn-row">
+          <label class="opt"><input type="radio" name="patientApplicable" value="Yes"> Yes</label>
+          <label class="opt"><input type="radio" name="patientApplicable" value="No"> No</label>
+        </div>
+        <div class="err"></div>
+      </div>
+
+      <div class="reveal" id="patientDetail" hidden style="margin-top: 20px;">
+        <div class="row">
+          <div class="form-group">
+            <label for="patientId">Patient Identifier:</label>
+            <input type="text" id="patientId">
+          </div>
+          <div class="form-group">
+            <label for="patientAgeDob">Age or DOB:</label>
+            <input type="text" id="patientAgeDob">
+          </div>
+        </div>
+        <div class="row">
+          <div class="form-group">
+            <label for="patientGender">Gender:</label>
+            <input type="text" id="patientGender">
+          </div>
+          <div class="form-group">
+            <label for="patientWeight">Weight:</label>
+            <input type="text" id="patientWeight">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="patientHistory">Past Medical History:</label>
+          <textarea id="patientHistory" style="min-height: 70px;"></textarea>
+        </div>
+        <div class="form-group">
+          <label for="patientTreatment">Treatment / Medical Intervention Provided:</label>
+          <textarea id="patientTreatment" style="min-height: 70px;"></textarea>
+        </div>
+        <div class="form-group">
+          <label for="patientOutcome">Patient Outcome:</label>
+          <textarea id="patientOutcome" style="min-height: 70px;"></textarea>
+        </div>
+        <div class="row">
+          <div class="form-group">
+            <label for="capaNum">CAPA #:</label>
+            <input type="text" id="capaNum">
+          </div>
+          <div class="form-group">
+            <label for="scarNum">SCAR #:</label>
+            <input type="text" id="scarNum">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="dispositionComments">Additional Disposition Comments:</label>
+          <textarea id="dispositionComments" style="min-height: 70px;"></textarea>
+        </div>
+        <div class="form-group" style="margin-bottom: 0;">
+          <label for="notReportingJustification">Justification for Not Reporting, if Applicable:</label>
+          <textarea id="notReportingJustification" style="min-height: 70px;"></textarea>
+        </div>
       </div>
     </fieldset>
 
     <div id="statusBannerBottom" class="banner"></div>
 
     <button class="btn btn-submit" id="submitBtn" type="button" onclick="submitComplaintRecord()">
-      Generate Complaint Record &amp; Log Entry
+      Generate Complaint Form &amp; Log Entry
     </button>
   </div>
 
   <script>
     const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxi7yy7dxpdvk2M7O8ul1YDjSR-IYBPxExX7YLBC8dyv2OoIiX3zAelTmmGzvAHU6K1/exec';
+    const SUBMIT_LABEL = 'Generate Complaint Form & Log Entry';
 
-    // PASSWORD GATE VERIFICATION
+    // ---------- PASSWORD GATE ----------
     function verifyPassword() {
       const input = document.getElementById('authPassword').value;
-      const errorMsg = document.getElementById('authError');
-      
       if (input === 'Complaint2026!') {
         sessionStorage.setItem('bc_qa_auth', 'authenticated');
         openPortal();
       } else {
-        errorMsg.style.display = 'block';
+        document.getElementById('authError').style.display = 'block';
       }
     }
 
-    // Show / hide password (eye icon)
     function togglePassword() {
       const input = document.getElementById('authPassword');
       const btn = document.getElementById('pwToggle');
@@ -517,142 +687,198 @@
       document.getElementById('ticketId').focus();
     }
 
-    // Date Became Aware = the date the entry is made on the portal (MM/DD/YYYY)
+    // ---------- HELPERS ----------
+    const $ = (id) => document.getElementById(id);
+    const val = (id) => ($(id) ? $(id).value.trim() : '');
+
+    function radioVal(name) {
+      const c = document.querySelector(`input[name="${name}"]:checked`);
+      return c ? c.value : '';
+    }
+    function setRadio(name, value) {
+      document.querySelectorAll(`input[name="${name}"]`).forEach(r => { r.checked = (r.value === value); });
+      updateConditionals();
+    }
+
     function todayMDY() {
       const d = new Date();
-      const mm = String(d.getMonth() + 1).padStart(2, '0');
-      const dd = String(d.getDate()).padStart(2, '0');
-      return `${mm}/${dd}/${d.getFullYear()}`;
+      return `${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}/${d.getFullYear()}`;
     }
-    function setDateAwareToday() {
-      document.getElementById('dateAware').value = todayMDY();
-    }
-
-    // Source radio buttons: "Other" enables its text box
-    function getSource() {
-      const checked = document.querySelector('input[name="source"]:checked');
-      return checked ? checked.value : '';
-    }
-    function setSource(value) {
-      document.querySelectorAll('input[name="source"]').forEach(r => { r.checked = (r.value === value); });
-      syncSourceOther();
-    }
-    function syncSourceOther() {
-      const other = document.getElementById('sourceOther');
-      const isOther = getSource() === 'Other';
-      other.disabled = !isOther;
-      if (!isOther) other.value = '';
-    }
-
-    window.addEventListener('DOMContentLoaded', () => {
-      document.querySelectorAll('input[name="source"]').forEach(r => r.addEventListener('change', syncSourceOther));
-      // Auto-login if previously verified in the active session
-      if (sessionStorage.getItem('bc_qa_auth') === 'authenticated') {
-        openPortal();
-      }
-    });
+    function setDateAwareToday() { $('dateAware').value = todayMDY(); }
 
     function showBanner(msg, type) {
-      const top = document.getElementById('statusBannerTop');
-      const bottom = document.getElementById('statusBannerBottom');
-      [top, bottom].forEach(b => {
-        if (b) {
-          b.className = `banner ${type}`;
-          b.innerHTML = msg;
-          b.style.display = 'block';
-        }
+      ['statusBannerTop', 'statusBannerBottom'].forEach(id => {
+        const b = $(id);
+        b.className = `banner ${type}`;
+        b.innerHTML = msg;
+        b.style.display = 'block';
+      });
+    }
+    function hideBanners() {
+      ['statusBannerTop', 'statusBannerBottom'].forEach(id => { $(id).style.display = 'none'; });
+    }
+    function escapeHtml(s) {
+      return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    }
+
+    // ---------- SHOW / HIDE BASED ON ANSWERS ----------
+    function updateConditionals() {
+      const catOther = radioVal('sourceCategory') === 'Other';
+      $('sourceCategoryOther').disabled = !catOther;
+      if (!catOther) $('sourceCategoryOther').value = '';
+
+      const srcOther = radioVal('source') === 'Other';
+      $('sourceOther').disabled = !srcOther;
+      if (!srcOther) $('sourceOther').value = '';
+
+      $('injuryDetail').hidden = radioVal('injury') !== 'Yes';
+      $('malfunctionDetail').hidden = radioVal('malfunction') !== 'Yes';
+      $('outOfSpecDetail').hidden = radioVal('outOfSpec') !== 'Yes';
+      $('phYesNote').hidden = radioVal('publicHealth') !== 'Yes';
+      $('phNoNote').hidden = radioVal('publicHealth') !== 'No';
+      $('patientDetail').hidden = radioVal('patientApplicable') !== 'Yes';
+    }
+
+    // ---------- VALIDATION ----------
+    function setError(field, msg) {
+      const group = document.querySelector(`[data-field="${field}"]`);
+      if (!group) return;
+      const err = group.querySelector(':scope > .err');
+      if (err) err.textContent = msg || '';
+      group.classList.toggle('has-error', !!msg);
+    }
+    // Once every flagged item is fixed, drop the "items need attention" banner
+    function maybeClearErrorBanner() {
+      if (!document.querySelector('.has-error') && $('statusBannerTop').classList.contains('error')) hideBanners();
+    }
+    function clearErrors() {
+      document.querySelectorAll('[data-field]').forEach(g => {
+        const err = g.querySelector(':scope > .err');
+        if (err) err.textContent = '';
+        g.classList.remove('has-error');
       });
     }
 
-    function hideBanners() {
-      const top = document.getElementById('statusBannerTop');
-      const bottom = document.getElementById('statusBannerBottom');
-      if (top) top.style.display = 'none';
-      if (bottom) bottom.style.display = 'none';
+    function validateForm() {
+      clearErrors();
+      const problems = [];
+      const need = (cond, field, msg) => { if (cond) { setError(field, msg); problems.push(field); } };
+
+      need(!val('receivedBy'), 'receivedBy', 'Enter the name of the person who received the complaint.');
+      need(!radioVal('sourceCategory'), 'sourceCategory', 'Choose a source category.');
+      need(radioVal('sourceCategory') === 'Other' && !val('sourceCategoryOther'), 'sourceCategory', 'Describe the "Other" category.');
+      need(!radioVal('source'), 'source', 'Choose how the complaint came in.');
+      need(radioVal('source') === 'Other' && !val('sourceOther'), 'source', 'Describe the "Other" source.');
+
+      ['patientInvolved', 'injury', 'publicHealth', 'malfunction', 'outOfSpec', 'availableForEval', 'patientApplicable']
+        .forEach(f => need(!radioVal(f), f, 'Choose Yes or No.'));
+
+      need(radioVal('injury') === 'Yes' && !val('medicalImpact'), 'medicalImpact', 'Describe the medical impact.');
+      need(radioVal('malfunction') === 'Yes' && !val('malfunctionDesc'), 'malfunctionDesc', 'Describe how the device malfunctioned.');
+      need(radioVal('outOfSpec') === 'Yes' && !val('outOfSpecDesc'), 'outOfSpecDesc', 'Describe how the product was out of specification.');
+
+      if (problems.length) {
+        const first = document.querySelector(`[data-field="${problems[0]}"]`);
+        if (first) first.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        showBanner(`${problems.length} item${problems.length > 1 ? 's need' : ' needs'} attention before the form can be generated.`, 'error');
+        return false;
+      }
+      return true;
     }
 
+    // ---------- HUBSPOT FETCH ----------
     async function fetchTicketById() {
-      const ticketId = document.getElementById('ticketId').value.trim();
-      if (!ticketId) {
-        showBanner('Enter a HubSpot Ticket ID first.', 'error');
-        document.getElementById('ticketId').focus();
-        return;
-      }
-      if (!/^\d+$/.test(ticketId)) {
-        showBanner('Ticket ID should contain numbers only.', 'error');
-        document.getElementById('ticketId').focus();
-        return;
-      }
+      const ticketId = val('ticketId');
+      if (!ticketId) { showBanner('Enter a HubSpot Ticket ID first.', 'error'); $('ticketId').focus(); return; }
+      if (!/^\d+$/.test(ticketId)) { showBanner('Ticket ID should contain numbers only.', 'error'); $('ticketId').focus(); return; }
 
-      showBanner(`Retrieving ticket #${ticketId} payload...`, 'loading');
-
+      showBanner(`Retrieving ticket #${escapeHtml(ticketId)}...`, 'loading');
       try {
-        const res = await fetch(`${APPS_SCRIPT_URL}?action=getTicket&ticketId=${ticketId}`);
+        const res = await fetch(`${APPS_SCRIPT_URL}?action=getTicket&ticketId=${encodeURIComponent(ticketId)}`);
         const json = await res.json();
-
-        if (!json.success) {
-          showBanner(`HubSpot Error: ${json.error}`, 'error');
-          return;
-        }
+        if (!json.success) { showBanner(`HubSpot Error: ${escapeHtml(json.error)}`, 'error'); return; }
 
         const d = json.data;
-        document.getElementById('complainantName').value = d.complainantName || '';
-        document.getElementById('dateReceived').value = d.createDate || '';
-        document.getElementById('facility').value = d.company || '';
-        document.getElementById('phone').value = d.phone || '';
-        document.getElementById('email').value = d.email || '';
-        document.getElementById('subject').value = d.subject || '';
-        document.getElementById('description').value = d.content || '';
-        // Address: filled only if HubSpot has it, otherwise left blank
-        document.getElementById('streetAddress').value = d.streetAddress || '';
-        document.getElementById('cityZip').value = d.cityZip || '';
-        // Source: pre-selected from the HubSpot ticket channel when known (user can change it)
-        setSource(d.source || '');
+        $('complainantName').value = d.complainantName || '';
+        $('dateReceived').value = d.createDate || '';
+        $('facility').value = d.company || '';
+        $('phone').value = d.phone || '';
+        $('email').value = d.email || '';
+        $('subject').value = d.subject || '';
+        $('description').value = d.content || '';
+        // Address only if HubSpot has it; otherwise blank
+        $('streetAddress').value = d.streetAddress || '';
+        $('cityZip').value = d.cityZip || '';
+        // Source pre-selected from the ticket channel when known
+        if (d.source) setRadio('source', d.source);
         setDateAwareToday();
 
-        showBanner(`Ticket #${ticketId} populated. Ready for QA triage.`, 'success');
+        showBanner(`Ticket #${escapeHtml(ticketId)} loaded. Complete the remaining sections below.`, 'success');
       } catch (err) {
-        showBanner(`Error fetching ticket: ${err.message}`, 'error');
+        showBanner(`Error fetching ticket: ${escapeHtml(err.message)}`, 'error');
       }
     }
 
+    // ---------- SUBMIT ----------
     async function submitComplaintRecord() {
-      if (getSource() === 'Other' && !document.getElementById('sourceOther').value.trim()) {
-        showBanner('Describe the "Other" source before submitting.', 'error');
-        document.getElementById('sourceOther').focus();
-        return;
-      }
-      const submitBtn = document.getElementById('submitBtn');
-      submitBtn.disabled = true;
-      submitBtn.innerText = 'Cloning Doc & Appending Master Log...';
-      showBanner('Generating Quality Complaint Record (FDA 21 CFR 820)...', 'loading');
+      if (!val('ticketId')) { showBanner('Enter and fetch a HubSpot Ticket ID first.', 'error'); $('ticketId').focus(); return; }
+      if (!validateForm()) return;
 
-      const getValue = (id, fallback = '') => {
-        const el = document.getElementById(id);
-        return el ? el.value : fallback;
-      };
+      const patientYes = radioVal('patientApplicable') === 'Yes';
+      const p = (id) => patientYes ? val(id) : '';
 
       const payload = {
-        ticketId: getValue('ticketId'),
-        complainantName: getValue('complainantName'),
-        dateReceived: getValue('dateReceived'),
-        facility: getValue('facility'),
-        dateAware: getValue('dateAware'),
-        phone: getValue('phone'),
-        email: getValue('email'),
-        streetAddress: getValue('streetAddress'),
-        cityZip: getValue('cityZip'),
-        source: getSource(),
-        sourceOther: getValue('sourceOther'),
-        subject: getValue('subject'),
-        description: getValue('description'),
-        productName: getValue('productName', 'Band Connect Clinic Kit'),
-        serialLot: getValue('serialLot'),
-        malfunction: getValue('malfunction', 'No'),
-        patientInjury: getValue('patientInjury', 'No'),
-        mdrReportable: getValue('mdrReportable', 'No'),
-        qaNotes: getValue('qaNotes')
+        ticketId: val('ticketId'),
+        subject: val('subject'),
+        // 1. Complainant information
+        receivedBy: val('receivedBy'),
+        complainantName: val('complainantName'),
+        dateReceived: val('dateReceived'),
+        sourceCategory: radioVal('sourceCategory'),
+        sourceCategoryOther: val('sourceCategoryOther'),
+        facility: val('facility'),
+        dateAware: val('dateAware'),
+        streetAddress: val('streetAddress'),
+        phone: val('phone'),
+        email: val('email'),
+        cityZip: val('cityZip'),
+        source: radioVal('source'),
+        sourceOther: val('sourceOther'),
+        // 2. Product information
+        productName: val('productName'),
+        serialLot: val('serialLot'),
+        otherInfo: val('otherInfo'),
+        // 3. Triage
+        patientInvolved: radioVal('patientInvolved'),
+        injury: radioVal('injury'),
+        medicalImpact: radioVal('injury') === 'Yes' ? val('medicalImpact') : '',
+        publicHealth: radioVal('publicHealth'),
+        // 4. Complaint detail
+        description: val('description'),
+        malfunction: radioVal('malfunction'),
+        malfunctionDesc: radioVal('malfunction') === 'Yes' ? val('malfunctionDesc') : '',
+        outOfSpec: radioVal('outOfSpec'),
+        outOfSpecDesc: radioVal('outOfSpec') === 'Yes' ? val('outOfSpecDesc') : '',
+        availableForEval: radioVal('availableForEval'),
+        // 5. Patient information (only when applicable)
+        patientApplicable: radioVal('patientApplicable'),
+        patientId: p('patientId'),
+        patientAgeDob: p('patientAgeDob'),
+        patientGender: p('patientGender'),
+        patientWeight: p('patientWeight'),
+        patientHistory: p('patientHistory'),
+        patientTreatment: p('patientTreatment'),
+        patientOutcome: p('patientOutcome'),
+        capaNum: p('capaNum'),
+        scarNum: p('scarNum'),
+        dispositionComments: p('dispositionComments'),
+        notReportingJustification: p('notReportingJustification')
       };
+
+      const submitBtn = $('submitBtn');
+      submitBtn.disabled = true;
+      submitBtn.innerText = 'Generating form and logging...';
+      showBanner('Generating Customer Complaint Form (BCF-TMP-002)...', 'loading');
 
       try {
         const res = await fetch(APPS_SCRIPT_URL, {
@@ -660,25 +886,36 @@
           headers: { 'Content-Type': 'text/plain;charset=utf-8' },
           body: JSON.stringify(payload)
         });
-
         const json = await res.json();
-
         if (!json.success) {
-          showBanner(`Submission Failed: ${json.error}`, 'error');
-          submitBtn.disabled = false;
-          submitBtn.innerText = 'Generate Complaint Record & Log Entry';
-          return;
+          showBanner(`Submission failed: ${escapeHtml(json.error)}`, 'error');
+        } else {
+          showBanner(`Record created: <strong>${escapeHtml(json.complaintNumber)}</strong>. <a href="${encodeURI(json.docUrl)}" target="_blank" rel="noopener" style="color: #25c2d3; text-decoration: underline; font-weight: 700; margin-left: 8px;">Open generated document</a>`, 'success');
         }
-
-        showBanner(`Record Created: <strong>${json.complaintNumber}</strong>. <a href="${json.docUrl}" target="_blank" style="color: #25c2d3; text-decoration: underline; font-weight: 700; margin-left: 8px;">Open Generated Document</a>`, 'success');
-        submitBtn.disabled = false;
-        submitBtn.innerText = 'Generate Complaint Record & Log Entry';
       } catch (err) {
-        showBanner(`Error processing submission: ${err.message}`, 'error');
+        showBanner(`Error processing submission: ${escapeHtml(err.message)}`, 'error');
+      } finally {
         submitBtn.disabled = false;
-        submitBtn.innerText = 'Generate Complaint Record & Log Entry';
+        submitBtn.innerText = SUBMIT_LABEL;
       }
     }
+
+    // ---------- INIT ----------
+    window.addEventListener('DOMContentLoaded', () => {
+      document.querySelectorAll('#mainPortal input[type="radio"]').forEach(r => r.addEventListener('change', () => {
+        updateConditionals();
+        const group = r.closest('[data-field]');
+        if (group) setError(group.dataset.field, '');
+        maybeClearErrorBanner();
+      }));
+      document.querySelectorAll('#mainPortal input[type="text"], #mainPortal textarea').forEach(el => el.addEventListener('input', () => {
+        const group = el.closest('[data-field]');
+        if (group) setError(group.dataset.field, '');
+        maybeClearErrorBanner();
+      }));
+      updateConditionals();
+      if (sessionStorage.getItem('bc_qa_auth') === 'authenticated') openPortal();
+    });
   </script>
 </body>
 </html>
