@@ -593,10 +593,17 @@
       </div>
 
       <div class="reveal" id="patientDetail" hidden style="margin-top: 20px;">
-        <div class="form-group">
+        <div class="form-group" style="margin-bottom: 0;">
           <label for="patientId">Patient Identifier:</label>
           <input type="text" id="patientId">
         </div>
+      </div>
+    </fieldset>
+
+    <!-- 6. DISPOSITION (always shown; CAPA / SCAR can exist without a patient) -->
+    <fieldset>
+      <legend>6. Disposition</legend>
+      <div class="field-hint" style="margin: 0 0 16px;">Fill in whatever applies. CAPA and SCAR can be recorded with or without a patient involved.</div>
         <div class="row">
           <div class="form-group">
             <label for="capaNum">CAPA #:</label>
@@ -615,7 +622,6 @@
           <label for="notReportingJustification">Justification for Not Reporting, if Applicable:</label>
           <textarea id="notReportingJustification" style="min-height: 70px;"></textarea>
         </div>
-      </div>
     </fieldset>
 
     <div id="statusBannerBottom" class="banner"></div>
@@ -835,10 +841,11 @@
         // 5. Patient information (only when applicable)
         patientApplicable: radioVal('patientApplicable'),
         patientId: p('patientId'),
-        capaNum: p('capaNum'),
-        scarNum: p('scarNum'),
-        dispositionComments: p('dispositionComments'),
-        notReportingJustification: p('notReportingJustification')
+        // 6. Disposition (independent of the patient question)
+        capaNum: val('capaNum'),
+        scarNum: val('scarNum'),
+        dispositionComments: val('dispositionComments'),
+        notReportingJustification: val('notReportingJustification')
       };
 
       const submitBtn = $('submitBtn');
