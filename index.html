@@ -527,7 +527,7 @@
           <label class="opt"><input type="radio" name="publicHealth" value="No"> No</label>
         </div>
         <div class="err"></div>
-        <div class="route-note urgent" id="phYesNote" hidden>Provide complaint information to the Head of Quality within 24 hours.</div>
+        <div class="route-note urgent" id="phYesNote" hidden>Provide complaint information to the Head of Quality within 24 hours. An alert email goes to the Head of Quality automatically when this form is generated.</div>
         <div class="route-note normal" id="phNoNote" hidden>Route for quality review within 10 business days.</div>
       </div>
     </fieldset>
@@ -593,37 +593,9 @@
       </div>
 
       <div class="reveal" id="patientDetail" hidden style="margin-top: 20px;">
-        <div class="row">
-          <div class="form-group">
-            <label for="patientId">Patient Identifier:</label>
-            <input type="text" id="patientId">
-          </div>
-          <div class="form-group">
-            <label for="patientAgeDob">Age or DOB:</label>
-            <input type="text" id="patientAgeDob">
-          </div>
-        </div>
-        <div class="row">
-          <div class="form-group">
-            <label for="patientGender">Gender:</label>
-            <input type="text" id="patientGender">
-          </div>
-          <div class="form-group">
-            <label for="patientWeight">Weight:</label>
-            <input type="text" id="patientWeight">
-          </div>
-        </div>
         <div class="form-group">
-          <label for="patientHistory">Past Medical History:</label>
-          <textarea id="patientHistory" style="min-height: 70px;"></textarea>
-        </div>
-        <div class="form-group">
-          <label for="patientTreatment">Treatment / Medical Intervention Provided:</label>
-          <textarea id="patientTreatment" style="min-height: 70px;"></textarea>
-        </div>
-        <div class="form-group">
-          <label for="patientOutcome">Patient Outcome:</label>
-          <textarea id="patientOutcome" style="min-height: 70px;"></textarea>
+          <label for="patientId">Patient Identifier:</label>
+          <input type="text" id="patientId">
         </div>
         <div class="row">
           <div class="form-group">
@@ -863,12 +835,6 @@
         // 5. Patient information (only when applicable)
         patientApplicable: radioVal('patientApplicable'),
         patientId: p('patientId'),
-        patientAgeDob: p('patientAgeDob'),
-        patientGender: p('patientGender'),
-        patientWeight: p('patientWeight'),
-        patientHistory: p('patientHistory'),
-        patientTreatment: p('patientTreatment'),
-        patientOutcome: p('patientOutcome'),
         capaNum: p('capaNum'),
         scarNum: p('scarNum'),
         dispositionComments: p('dispositionComments'),
@@ -890,7 +856,13 @@
         if (!json.success) {
           showBanner(`Submission failed: ${escapeHtml(json.error)}`, 'error');
         } else {
-          showBanner(`Record created: <strong>${escapeHtml(json.complaintNumber)}</strong>. <a href="${encodeURI(json.docUrl)}" target="_blank" rel="noopener" style="color: #25c2d3; text-decoration: underline; font-weight: 700; margin-left: 8px;">Open generated document</a>`, 'success');
+          let msg = `Record created: <strong>${escapeHtml(json.complaintNumber)}</strong>. <a href="${encodeURI(json.docUrl)}" target="_blank" rel="noopener" style="color: #25c2d3; text-decoration: underline; font-weight: 700; margin-left: 8px;">Open generated document</a>`;
+          if (json.alertSent) {
+            msg += `<br>Head of Quality alert email sent to ${escapeHtml(json.alertTo)}.`;
+          } else if (json.alertError) {
+            msg += `<br><strong>The Head of Quality alert email could not be sent (${escapeHtml(json.alertError)}). Notify them manually within 24 hours.</strong>`;
+          }
+          showBanner(msg, json.alertError ? 'error' : 'success');
         }
       } catch (err) {
         showBanner(`Error processing submission: ${escapeHtml(err.message)}`, 'error');
